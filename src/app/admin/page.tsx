@@ -141,7 +141,7 @@ export default async function AdminDashboard() {
               
               // Get variants this user saw
               const variantIdsSeen = Array.from(new Set(visitorEvents.map(e => e.variantId)));
-              const userVariants = allVariants.filter(v => variantIdsSeen.includes(v.id));
+              const userVariants = allVariants.filter(v => variantIdsSeen.includes(v.id)).reverse(); // Newest at the top
 
               return (
                 <div key={visitorId} className="p-6 border border-neutral-700 rounded-2xl bg-neutral-900 flex flex-col gap-6 shadow-xl">
@@ -168,7 +168,7 @@ export default async function AdminDashboard() {
                           key={variant.id}
                           title={`🎨 Design Generation ${variant.generation}`}
                           subtitle={variant.id}
-                          defaultOpen={index === userVariants.length - 1} // Open latest by default
+                          defaultOpen={index === 0} // Open latest (which is now at the top) by default
                         >
                           {/* AI Thoughts (Why was this built?) */}
                           <div className="flex gap-3 items-start bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">

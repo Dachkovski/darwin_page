@@ -65,10 +65,22 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
         try { return JSON.parse(e.metadataJson || '{}').error; } catch(err){ return null; }
     }).filter(Boolean);
 
+    let currentVariantTime = 0;
+    variantEvents.filter(e => e.eventType === 'time_on_page').forEach(e => {
+        try { currentVariantTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch(err){}
+    });
+    const currentVariantClicks = variantEvents.filter(e => e.eventType === 'interaction_click').length;
+    const hasBounced = variantEvents.some(e => e.eventType === 'bounce');
+
+    let disinterestPrompt = "";
+    if (hasBounced || (currentVariantTime < 15 && currentVariantClicks === 0)) {
+      disinterestPrompt = `\nCRITICAL FEEDBACK: The user showed ABSOLUTELY NO INTEREST in your last design. They spent only ${currentVariantTime} seconds and clicked nothing. YOU MUST PIVOT RADICALLY. Completely change the theme, the layout, the copy, and the interaction model. Try a fundamentally different approach to capture their attention!`;
+    }
+
     userHistoryContext = `\n--- USER JOURNEY CONTEXT ---
 This evolution is HIGHLY PERSONALIZED for a specific user.
 The user has spent a total of ${totalTime} seconds interacting with your previous variants.
-Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.
+Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.${disinterestPrompt}
 ${jsErrors.length > 0 ? `CRITICAL BUG REPORT: Your previous Javascript code threw the following errors: ${jsErrors.slice(0, 5).join(' | ')}. YOU MUST FIX THESE ERRORS IN THIS NEW VERSION!` : ''}
 CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!
 EXTREME PERSONALIZATION REQUIRED: You MUST include a personalized greeting or status message explicitly acknowledging their progress (e.g., "Welcome back! You have explored for ${totalTime} seconds and clicked on X, Y, Z."). Make them feel like the app is alive and watching them.`;

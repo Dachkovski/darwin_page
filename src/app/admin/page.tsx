@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   // Check Basic Auth status from headers
-  const authHeader = headers().get('authorization');
+  const headersList = await headers();
+  const authHeader = headersList.get('authorization');
   const authPassword = process.env.ADMIN_PASSWORD;
   
   let isAdmin = false;

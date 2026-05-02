@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, MousePointerClick, Users, TrendingUp, ChevronDown } from 'lucide-react';
 
+import dynamic from 'next/dynamic';
+
+const EvolutionChartDynamic = dynamic(() => import('./EvolutionChart'), { ssr: false, loading: () => <div className="w-full h-full animate-pulse bg-neutral-800/20 rounded-lg flex items-center justify-center text-neutral-600">Loading chart safely...</div> });
+
 export type ChartDataPoint = {
   generation: number;
   variantId: string;
@@ -17,16 +21,6 @@ export type ChartDataPoint = {
 
 export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] }) {
   const [activeMetric, setActiveMetric] = useState<keyof ChartDataPoint>('score');
-  const [mounted, setMounted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      setMounted(true);
-    } catch (e: any) {
-      setError(e.message);
-    }
-  }, []);
 
   // Sort data by generation ascending for the chart
   const chartData = [...data].sort((a, b) => a.generation - b.generation);
@@ -102,51 +96,7 @@ export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] })
 
         <div className="w-full h-[350px] min-h-[350px] min-w-0">
           {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={activeColor} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={activeColor} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                <XAxis 
-                  dataKey="generation" 
-                  stroke="#666" 
-                  tick={{fill: '#888', fontSize: 12}} 
-                  tickFormatter={(val) => `Gen ${val}`}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  stroke="#666" 
-                  tick={{fill: '#888', fontSize: 12}}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#171717', borderColor: '#333', borderRadius: '8px', color: '#fff' }}
-                  itemStyle={{ color: activeColor, fontWeight: 'bold' }}
-                  labelStyle={{ color: '#888', marginBottom: '4px' }}
-                  formatter={(value: any) => {
-                    const safeVal = Number(value) || 0;
-                    if (['score', 'visitors'].includes(activeMetric)) return [safeVal.toFixed(2), ''];
-                    return [`${safeVal.toFixed(2)}%`, ''];
-                  }}
-                  labelFormatter={(label) => `Generation ${label}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey={activeMetric} 
-                  stroke={activeColor} 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorMetric)" 
-                  activeDot={{ r: 6, strokeWidth: 0, fill: activeColor }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EvolutionChartDynamic chartData={chartData} activeMetric={activeMetric} activeColor={activeColor} />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-neutral-600 border border-dashed border-neutral-800 rounded-lg">
               No evolution data available yet.

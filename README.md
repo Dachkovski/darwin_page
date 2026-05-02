@@ -2,7 +2,7 @@
 
 A self-evolving one-page website with a Karpathy-style feedback loop.
 
-![DarwinPage Evolution Loop](docs/placeholder-hero.png)
+![DarwinPage Evolution Loop](public/darwin-page-hero.png)
 
 ## What it is
 

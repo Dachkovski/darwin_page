@@ -229,6 +229,7 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
     status: 'active',
     contentJson: JSON.stringify(parsedContent),
     hypothesis,
+    generationPrompt: evolvePrompt,
     mutationReason: 'Autonomous Cron Evolution'
   });
 

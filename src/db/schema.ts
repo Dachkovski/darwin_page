@@ -9,6 +9,7 @@ export const variants = sqliteTable('variants', {
   status: text('status').notNull().default('draft'), // draft, active, winner, archived, inconclusive
   contentJson: text('content_json').notNull(),
   hypothesis: text('hypothesis'),
+  generationPrompt: text('generation_prompt'),
   mutationReason: text('mutation_reason'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
   activatedAt: integer('activated_at', { mode: 'timestamp' }),

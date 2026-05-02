@@ -40,6 +40,8 @@ export default async function AdminDashboard() {
     .from(events)
     .groupBy(events.variantId, events.eventType);
 
+  console.log("Admin Panel Event Counts:", eventCounts.slice(0, 5));
+
   const config = configs[0];
 
   // Process data for the Analytics Dashboard

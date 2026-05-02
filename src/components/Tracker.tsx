@@ -18,7 +18,12 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     // 1. Determine Visitor ID
     let finalVisitorId = visitorId;
     if (!finalVisitorId) {
-      finalVisitorId = localStorage.getItem("visitor_id") || crypto.randomUUID();
+      // Check cookie first just in case
+      finalVisitorId = document.cookie.split('; ').find(row => row.startsWith('visitor_id='))?.split('=')[1];
+      if (!finalVisitorId) {
+        finalVisitorId = localStorage.getItem("visitor_id") || crypto.randomUUID();
+        document.cookie = `visitor_id=${finalVisitorId}; path=/; max-age=31536000`;
+      }
       localStorage.setItem("visitor_id", finalVisitorId);
     }
 
@@ -133,12 +138,24 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     // Make track available globally so CTAs can call it
     (window as any).trackEvent = track;
 
+    // 7. Auto-reload when new evolution is ready
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/version?visitorId=${finalVisitorId}`);
+        const data = await res.json();
+        if (data.latestVariantId && data.latestVariantId !== variantId) {
+          window.location.reload();
+        }
+      } catch (e) {}
+    }, 5000);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("click", handleGlobalClick);
       window.removeEventListener("message", handleMessage);
       clearInterval(flushInterval);
+      clearInterval(pollInterval);
       delete (window as any).trackEvent;
     };
   }, [variantId]);

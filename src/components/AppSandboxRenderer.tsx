@@ -38,11 +38,16 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
       const target = e.target;
       const interactiveEl = target.closest('button, a, input, select, [role="button"]');
       if (interactiveEl) {
+        // Capture all input values so the AI can read what the user typed
+        const allInputs = Array.from(document.querySelectorAll('input, textarea, select'));
+        const inputValues = allInputs.map(el => el.id + '=' + el.value).filter(val => !val.endsWith('='));
+        
         window.darwin.trackEvent('interaction_click', {
           tag: interactiveEl.tagName.toLowerCase(),
           text: interactiveEl.innerText?.substring(0, 50) || interactiveEl.value || '',
           id: interactiveEl.id || '',
-          className: interactiveEl.className || ''
+          className: interactiveEl.className || '',
+          formState: inputValues.length > 0 ? inputValues.join(', ') : null
         });
       }
     });

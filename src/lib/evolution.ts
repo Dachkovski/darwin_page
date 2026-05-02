@@ -43,7 +43,14 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
     
     // Build context
     const interactions = allUserEvents.filter(e => e.eventType === 'interaction_click').map(e => {
-        try { return JSON.parse(e.metadataJson || '{}').text; } catch(err){ return null; }
+        try { 
+          const meta = JSON.parse(e.metadataJson || '{}');
+          let text = meta.text;
+          if (meta.formState) {
+            text += ` (User Inputted: ${meta.formState})`;
+          }
+          return text;
+        } catch(err){ return null; }
     }).filter(Boolean);
     
     // Calculate total time
@@ -83,7 +90,7 @@ The user has spent a total of ${totalTime} seconds interacting with your previou
 Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.${disinterestPrompt}
 ${jsErrors.length > 0 ? `CRITICAL BUG REPORT: Your previous Javascript code threw the following errors: ${jsErrors.slice(0, 5).join(' | ')}. YOU MUST FIX THESE ERRORS IN THIS NEW VERSION!` : ''}
 CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!
-EXTREME PERSONALIZATION REQUIRED: You MUST include a personalized greeting or status message explicitly acknowledging their progress (e.g., "Welcome back! You have explored for ${totalTime} seconds and clicked on X, Y, Z."). Make them feel like the app is alive and watching them.`;
+EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input field (see 'User Inputted:' above), YOU MUST RESPOND DIRECTLY to their input in the new UI! Treat this as a slow-motion conversation. Acknowledge what they wrote in the new headline or body text.`;
   } else {
     variantEvents = await db.select().from(events).where(eq(events.variantId, variant.id));
     const uniqueVisitors = new Set(variantEvents.map(e => e.visitorId)).size;

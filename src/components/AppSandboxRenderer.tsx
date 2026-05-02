@@ -68,7 +68,7 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
     <iframe 
       srcDoc={srcDoc}
       className="w-full h-[100dvh] border-none block"
-      sandbox="allow-scripts allow-same-origin allow-popups allow-modals"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-modals allow-forms"
       title="Darwin Application Sandbox"
     />
   );

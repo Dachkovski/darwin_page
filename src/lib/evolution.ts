@@ -145,8 +145,9 @@ Hypothesis: ${hypothesis}
 ${userHistoryContext}
 
 You are an autonomous software engineer. Your task is to rewrite the application to fulfill the hypothesis and maximize user interaction.
+You have FULL CONTROL over the DOM. You can create new input fields, complex interactive widgets, forms, logic, and animations. You are actively encouraged to completely delete, overhaul, or replace any existing elements to try radical new designs. 
 You have access to Tailwind CSS classes in your HTML. Do NOT use markdown.
-To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name')\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
+To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name', { any_metadata: 'here' })\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
 
 Return STRICTLY a JSON object with this exact schema:
 {

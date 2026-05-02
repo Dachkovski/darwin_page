@@ -43,12 +43,10 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       if (eventQueue.length === 0) return;
       const payload = JSON.stringify({ events: eventQueue, startImage, latestImage });
       
-      // Use fetch keepalive instead of sendBeacon to avoid strict 64kb limits with base64 images
       fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: payload,
-        keepalive: true
+        body: payload
       }).catch(e => console.error("Tracking error:", e));
       eventQueue = [];
     };

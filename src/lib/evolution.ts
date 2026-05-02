@@ -67,7 +67,8 @@ Based on the goal and metrics, provide an observation and hypothesis.`;
 Old Content:\n${variant.contentJson}
 Observation: ${observation}
 Hypothesis: ${hypothesis}
-Generate NEW JSON content strictly matching the previous schema that solves the hypothesis.`;
+Generate NEW JSON content strictly matching the previous schema that solves the hypothesis.
+CRITICAL ENGINE RULE: You MUST NOT output any HTML tags (like <button>, <a>, <strong>, etc.) inside the JSON values. Return pure plain text only!`;
   let newContentJson = variant.contentJson;
 
   try {

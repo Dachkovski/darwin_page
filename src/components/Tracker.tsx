@@ -10,34 +10,53 @@ function getOrGenerateId(key: string, storage: Storage): string {
   }
   return id;
 }
-
 export default function Tracker({ variantId }: { variantId: string }) {
   const trackedScrolls = useRef(new Set<number>());
   const startTime = useRef(Date.now());
 
   useEffect(() => {
-    // 1. Initialize IDs
-    const visitorId = getOrGenerateId("darwin_visitor_id", localStorage);
-    const sessionId = getOrGenerateId("darwin_session_id", sessionStorage);
+    let visitorId = localStorage.getItem("visitor_id");
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      localStorage.setItem("visitor_id", visitorId);
+    }
 
-    // Helper to send events
-    const track = async (eventType: string, metadata?: any) => {
-      try {
-        await fetch("/api/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            visitorId,
-            sessionId,
-            variantId,
-            eventType,
-            metadata,
-          }),
-        });
-      } catch (e) {
-        console.error("Tracking failed", e);
+    let sessionId = sessionStorage.getItem("session_id");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem("session_id", sessionId);
+    }
+
+    let eventQueue: any[] = [];
+    let flushInterval: NodeJS.Timeout;
+
+    const flushQueue = () => {
+      if (eventQueue.length === 0) return;
+      const payload = JSON.stringify({ events: eventQueue });
+      
+      // Use sendBeacon for reliable delivery, especially during page unload
+      navigator.sendBeacon("/api/events", payload);
+      eventQueue = [];
+    };
+
+    const track = (eventType: string, metadata: Record<string, any> = {}) => {
+      eventQueue.push({
+        visitorId,
+        sessionId,
+        variantId,
+        eventType,
+        metadataJson: JSON.stringify(metadata),
+        timestamp: new Date().toISOString()
+      });
+
+      // Force flush if it's a critical exit event
+      if (eventType === 'time_on_page' || eventType === 'bounce') {
+        flushQueue();
       }
     };
+
+    // Auto-flush every 5 seconds to reduce server load
+    flushInterval = setInterval(flushQueue, 5000);
 
     // 2. Track initial view
     track("page_view");

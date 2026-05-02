@@ -1,20 +1,41 @@
-import { search } from 'duck-duck-scrape';
+import { getDb } from './db';
+import { optimizationConfigs } from '@/db/schema';
 
-export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher."): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseUrl = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-  const model = process.env.OPENAI_MODEL || "gpt-5.5";
-
-  if (!apiKey) {
-    console.warn("⚠️ OPENAI_API_KEY is not set. Using a mock LLM response for local testing.");
-    return JSON.stringify({
-      observation: "The variant has high click rates but low scroll depth.",
-      hypothesis: "We should shorten the value propositions."
+// Edge-compatible minimal DuckDuckGo scraper
+async function searchWeb(query: string) {
+  try {
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      }
     });
+    const html = await res.text();
+    const results = [];
+    const regex = /<a class="result__snippet[^>]*>(.*?)<\/a>/gi;
+    let match;
+    let count = 0;
+    while ((match = regex.exec(html)) !== null && count < 5) {
+      results.push(match[1].replace(/<\/?[^>]+(>|$)/g, ""));
+      count++;
+    }
+    return results.join("\n\n");
+  } catch (err) {
+    return "Search unavailable.";
+  }
+}
+
+export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher.", env?: any): Promise<string> {
+  const db = getDb(env);
+  const configs = await db.select().from(optimizationConfigs).limit(1);
+  const activeConfig = configs.length > 0 ? configs[0] : null;
+  
+  let finalSystemPrompt = systemPrompt;
+  if (activeConfig && activeConfig.llmSystemPrompt) {
+    finalSystemPrompt = activeConfig.llmSystemPrompt;
   }
 
-  const messages: any[] = [
-    { role: "system", content: systemPrompt },
+  const messages = [
+    { role: "system", content: finalSystemPrompt },
     { role: "user", content: prompt }
   ];
 
@@ -23,7 +44,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
       type: "function",
       function: {
         name: "search_web",
-        description: "Search the internet for up-to-date information, news, code libraries, or facts to inspire your next UI evolution or answer a user's question.",
+        description: "Search the web for real-time information, UX trends, or best practices.",
         parameters: {
           type: "object",
           properties: {
@@ -35,23 +56,20 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
     }
   ];
 
-  let maxLoops = 5;
-  while (maxLoops > 0) {
-    maxLoops--;
-    
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+  const apiKey = env ? env.OPENAI_API_KEY : process.env.OPENAI_API_KEY;
+
+  for (let i = 0; i < 3; i++) { // Max 3 interactions
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model,
+        model: "gpt-4o-mini",
         messages,
         tools,
-        tool_choice: "auto",
-        temperature: 1,
-        response_format: { type: "json_object" }
+        tool_choice: "auto"
       })
     });
 
@@ -65,43 +83,23 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
     messages.push(message);
 
     if (message.tool_calls && message.tool_calls.length > 0) {
-      console.log(`[Darwin Agent] LLM requested tools:`, message.tool_calls.map((t:any) => t.function.name).join(', '));
-      
       for (const toolCall of message.tool_calls) {
         if (toolCall.function.name === "search_web") {
+          const args = JSON.parse(toolCall.function.arguments);
           try {
-            const args = JSON.parse(toolCall.function.arguments);
-            console.log(`[Darwin Agent] Searching web for: "${args.query}"`);
-            
-            const searchResults = await search(args.query);
-            // Grab the first 5 results and format them
-            const formattedResults = searchResults.results.slice(0, 5).map((r, i) => 
-              `${i+1}. ${r.title}\nURL: ${r.url}\nDescription: ${r.description}`
-            ).join('\n\n');
-            
+            const formattedResults = await searchWeb(args.query);
             messages.push({
               role: "tool",
               tool_call_id: toolCall.id,
-              name: toolCall.function.name,
               content: formattedResults || "No results found."
             });
           } catch (err: any) {
-            console.error("[Darwin Agent] Search failed:", err);
             messages.push({
               role: "tool",
               tool_call_id: toolCall.id,
-              name: toolCall.function.name,
               content: `Error performing search: ${err.message}`
             });
           }
-        } else {
-          // Unrecognized tool
-          messages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            name: toolCall.function.name,
-            content: "Error: Tool not found."
-          });
         }
       }
     } else {

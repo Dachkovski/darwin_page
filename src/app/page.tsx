@@ -18,16 +18,18 @@ export default async function Home() {
   let lastMutation = "Genesis";
 
   try {
-    const activeVariants = await db
+    const activeVariantsList = await db
       .select()
       .from(variants)
       .where(eq(variants.status, 'active'))
       .orderBy(desc(variants.generation))
       .limit(1);
 
-    if (activeVariants.length > 0) {
-      const v = activeVariants[0];
+    if (activeVariantsList.length > 0) {
+      const v = activeVariantsList[0];
       activeVariantData = JSON.parse(v.contentJson) as AppVariant;
+      // Inject ID for tracking
+      (activeVariantData as any).id = v.id;
       generation = v.generation;
       lastMutation = v.mutationReason || "Unknown";
     }
@@ -35,13 +37,15 @@ export default async function Home() {
     console.error("Error fetching variant:", error);
   }
 
+  const trackingId = (activeVariantData as any).id || "fallback";
+
   return (
     <>
-      <Tracker variantId={activeVariants?.length > 0 ? activeVariants[0].id : "fallback"} />
+      <Tracker variantId={trackingId} />
       <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 
         generation={generation}
-        variantId={activeVariants?.length > 0 ? activeVariants[0].id : "fallback"}
+        variantId={trackingId}
         score={score}
         lastMutation={lastMutation}
       />

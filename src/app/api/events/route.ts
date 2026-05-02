@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { events } from "@/db/schema";
+import { events, optimizationConfigs } from "@/db/schema";
 
 export async function POST(req: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, MousePointerClick, Users, TrendingUp, ChevronDown } from 'lucide-react';
 
@@ -17,6 +17,11 @@ export type ChartDataPoint = {
 
 export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] }) {
   const [activeMetric, setActiveMetric] = useState<keyof ChartDataPoint>('score');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Sort data by generation ascending for the chart
   const chartData = [...data].sort((a, b) => a.generation - b.generation);
@@ -89,9 +94,9 @@ export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] })
           </div>
         </div>
 
-        <div className="w-full h-[350px]">
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full h-[350px] min-h-[350px] min-w-0">
+          {mounted && chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">

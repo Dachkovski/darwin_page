@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
       minVisitorsPerVariant: body.minVisitorsPerVariant,
       llmSystemPrompt: body.llmSystemPrompt,
       optimizationGoal: body.optimizationGoal,
-      activeMetricName: 'default_score',
-      scoreWeightsJson: JSON.stringify({ cta_click_rate: 1.0, scroll_depth_rate: 0.5, time_on_page: 0.2, bounce_rate: -0.2 })
+      activeMetricName: body.activeMetricName || 'default_score',
+      scoreWeightsJson: body.scoreWeightsJson || JSON.stringify({ cta_click_rate: 1.0, scroll_depth_rate: 0.5, time_on_page: 0.2, bounce_rate: -0.2 })
     });
 
     return NextResponse.json({ success: true });

@@ -2,12 +2,27 @@
 
 import { useState } from "react";
 
+export const PRESET_METRICS = [
+  {
+    name: 'CTA Click Rate + Scroll Depth',
+    weights: { cta_click_rate: 1.0, scroll_depth_rate: 0.5, time_on_page: 0.2, bounce_rate: -0.2 },
+    goal: "Optimize for maximum click-through rate on the primary CTA and encourage users to scroll through the entire page."
+  },
+  {
+    name: 'Session Duration (Verweildauer)',
+    weights: { cta_click_rate: 0.2, scroll_depth_rate: 0.2, time_on_page: 2.0, bounce_rate: -0.5 },
+    goal: "Maximize the time users spend interacting with the application. Build engaging, sticky content or interactive tools that keep them hooked."
+  }
+];
+
 export default function AdminConfigPanel({ initialConfig }: { initialConfig: any }) {
   const [config, setConfig] = useState(initialConfig || {
     autoPromoteEnabled: false,
     minVisitorsPerVariant: 10,
     llmSystemPrompt: "You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.",
-    optimizationGoal: "Increase CTA clicks while reducing bounce rate and dead clicks."
+    optimizationGoal: PRESET_METRICS[0].goal,
+    activeMetricName: PRESET_METRICS[0].name,
+    scoreWeightsJson: JSON.stringify(PRESET_METRICS[0].weights)
   });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -55,6 +70,32 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
             onChange={e => setConfig({...config, minVisitorsPerVariant: parseInt(e.target.value) || 10})}
             className="w-full bg-black/50 border-neutral-800 text-white rounded-lg p-2 border focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-neutral-400 mb-1">Optimization Metric Profile</label>
+          <select 
+            value={config.activeMetricName}
+            onChange={(e) => {
+              const selected = PRESET_METRICS.find(m => m.name === e.target.value);
+              if (selected) {
+                setConfig({
+                  ...config, 
+                  activeMetricName: selected.name,
+                  scoreWeightsJson: JSON.stringify(selected.weights),
+                  optimizationGoal: selected.goal
+                });
+              }
+            }}
+            className="w-full bg-black/50 border-neutral-800 text-white rounded-lg p-2 border focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+          >
+            {PRESET_METRICS.map(m => (
+              <option key={m.name} value={m.name}>{m.name}</option>
+            ))}
+          </select>
+          <div className="mt-2 text-[10px] text-neutral-500 font-mono">
+            Active Weights: {config.scoreWeightsJson}
+          </div>
         </div>
 
         <div>

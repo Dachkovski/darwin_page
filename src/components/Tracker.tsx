@@ -84,18 +84,37 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
 
-    // 4. Track time on page / bounce on exit
+    // 4. Track active time on page / bounce on exit
+    let accumulatedActiveTime = 0;
+    let lastActiveStartTime = Date.now();
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        const timeOnPage = Math.round((Date.now() - startTime.current) / 1000);
-        track("time_on_page", { seconds: timeOnPage });
+        // User switched tabs or minimized
+        const timeSinceLastActive = Math.round((Date.now() - lastActiveStartTime) / 1000);
+        accumulatedActiveTime += timeSinceLastActive;
         
-        // Simple bounce definition: left within 10 seconds without scrolling much
-        if (timeOnPage < 10 && !trackedScrolls.current.has(25)) {
+        track("time_on_page", { seconds: accumulatedActiveTime });
+        
+        // Simple bounce definition: left within 10 seconds of active time without scrolling much
+        if (accumulatedActiveTime < 10 && !trackedScrolls.current.has(25)) {
           track("bounce");
         }
+      } else {
+        // User came back to the tab, restart the active timer
+        lastActiveStartTime = Date.now();
       }
     };
+    
+    // Also track periodically every 15 seconds to ensure we capture time even if they don't hide the tab
+    const activeTimeInterval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        const timeSinceLastActive = Math.round((Date.now() - lastActiveStartTime) / 1000);
+        const currentActiveTime = accumulatedActiveTime + timeSinceLastActive;
+        track("time_on_page", { seconds: currentActiveTime });
+      }
+    }, 15000);
+
     window.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 5. Global Interaction Tracker (Heatmap / Dead Clicks)
@@ -156,6 +175,7 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       window.removeEventListener("message", handleMessage);
       clearInterval(flushInterval);
       clearInterval(pollInterval);
+      clearInterval(activeTimeInterval);
       delete (window as any).trackEvent;
     };
   }, [variantId]);

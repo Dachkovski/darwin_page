@@ -52,11 +52,20 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
         try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch(err){}
     });
     
+    // COOLDOWN CHECK: Don't evolve if the current variant was created less than 2 minutes ago
+    // or if they haven't spent enough time on it yet to justify an evolution.
+    const now = Date.now();
+    const createdTime = variant.createdAt ? new Date(variant.createdAt).getTime() : 0;
+    if (now - createdTime < 2 * 60 * 1000) {
+      return { status: 'skipped', message: 'Personal variant is too new (cooldown active).' };
+    }
+
     userHistoryContext = `\n--- USER JOURNEY CONTEXT ---
 This evolution is HIGHLY PERSONALIZED for a specific user.
 The user has spent a total of ${totalTime} seconds interacting with your previous variants.
 Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.
-CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!`;
+CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!
+EXTREME PERSONALIZATION REQUIRED: You MUST include a personalized greeting or status message explicitly acknowledging their progress (e.g., "Welcome back! You have explored for ${totalTime} seconds and clicked on X, Y, Z."). Make them feel like the app is alive and watching them.`;
   } else {
     variantEvents = await db.select().from(events).where(eq(events.variantId, variant.id));
     const uniqueVisitors = new Set(variantEvents.map(e => e.visitorId)).size;
@@ -145,8 +154,9 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
     JSON.parse(jsonStr); // validate
     newContentJson = jsonStr;
   } catch (e) {
+    console.error("Evolution LLM call failed:", e);
     const fb = JSON.parse(newContentJson);
-    fb.primary_cta_text += " (Auto Evolved)";
+    fb.html = fb.html + "\n<!-- Evolved (Failed to parse) -->";
     newContentJson = JSON.stringify(fb);
   }
 

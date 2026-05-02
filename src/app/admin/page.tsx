@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
   });
 
   // For the list view, we want descending order
-  const listVariants = [...allVariants].reverse();
+  const listVariants = [...allVariants].reverse().slice(0, 50);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-300 font-mono p-8">
@@ -204,7 +204,7 @@ export default async function AdminDashboard() {
             <div className="flex flex-col gap-4">
               <h2 className="text-xl font-semibold text-white">Research Log</h2>
               <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2">
-                {logs.map((log) => (
+                {logs.slice(0, 50).map((log) => (
                   <div key={log.id} className="p-4 border border-neutral-800 rounded-xl bg-neutral-900/50 text-xs">
                     <div className="flex justify-between text-neutral-500 mb-2 border-b border-neutral-800 pb-2">
                       <span>Gen {log.generation}</span>

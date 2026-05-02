@@ -18,9 +18,14 @@ export type ChartDataPoint = {
 export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] }) {
   const [activeMetric, setActiveMetric] = useState<keyof ChartDataPoint>('score');
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
+    try {
+      setMounted(true);
+    } catch (e: any) {
+      setError(e.message);
+    }
   }, []);
 
   // Sort data by generation ascending for the chart

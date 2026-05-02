@@ -15,7 +15,7 @@ export default function AdminActions() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as any;
       if (!res.ok) throw new Error(data.error);
       
       // Refresh the page data to show new variants or logs

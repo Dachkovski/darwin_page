@@ -5,7 +5,7 @@ import { optimizationConfigs } from "@/db/schema";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json() as any;
     const db = getDb((process.env as any) || {});
 
     // Delete existing to keep it simple, then insert new

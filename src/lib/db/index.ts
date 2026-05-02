@@ -1,19 +1,25 @@
-import { localDb } from './local';
 import { getD1Db } from './d1';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 /**
  * Universal Database Accessor
  * Automatically switches between D1 (Production/Edge) and SQLite (Local/Node)
  */
 export const getDb = (env?: any) => {
-  // If we are on Cloudflare Edge and have the D1 binding, use D1
-  if (env && env.D1_DB) {
-    return getD1Db(env);
-  }
+  if (env && env.D1_DB) return getD1Db(env);
   
-  // Fallback to local SQLite (only works in Node.js environments)
-  return localDb;
+  // Try to get from next-on-pages context if no env passed
+  try {
+    const ctx = getRequestContext();
+    if (ctx.env && ctx.env.D1_DB) return getD1Db(ctx.env);
+  } catch(e) {}
+  
+  throw new Error("D1_DB not available. Please run using 'npx wrangler pages dev'.");
 };
 
-// For scripts and backwards compatibility in local Node environments
-export const db = localDb;
+// A proxy that dynamically fetches the DB, since we can't statically export it anymore without env
+export const db = new Proxy({}, {
+  get: (target, prop) => {
+    return getDb()[prop as keyof ReturnType<typeof getDb>];
+  }
+}) as ReturnType<typeof getDb>;

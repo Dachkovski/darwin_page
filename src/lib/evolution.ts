@@ -2,7 +2,6 @@ import { getDb } from './db';
 import { events, metricSnapshots, optimizationConfigs, researchLogs, variants } from '@/db/schema';
 import { callLLM } from './llm';
 import { desc, eq, and, isNull, asc } from 'drizzle-orm';
-import crypto from 'crypto';
 
 export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
   const db = getDb(env);
@@ -149,7 +148,7 @@ Based on the goal and metrics, provide an observation and hypothesis.`;
   }
 
   await db.insert(researchLogs).values({
-    id: crypto.randomUUID(),
+    id: globalThis.crypto.randomUUID(),
     generation: variant.generation,
     action: 'analyze_metrics',
     observation,

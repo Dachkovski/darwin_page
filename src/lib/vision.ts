@@ -1,6 +1,5 @@
 import { getDb } from './db';
 import { events } from '@/db/schema';
-import crypto from 'crypto';
 
 export async function analyzeVisuals(startImage: string, latestImage: string, variantId: string, visitorId: string, sessionId: string, env: any) {
   const apiKey = env.OPENAI_API_KEY;
@@ -56,25 +55,9 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
       if (env && env.CF_PAGES) {
         console.log("Skipping local file save on Cloudflare Pages");
       } else {
-        const fs = await import('fs/promises');
-        const path = await import('path');
-        const snapshotsDir = path.join(process.cwd(), 'public', 'snapshots');
-        await fs.mkdir(snapshotsDir, { recursive: true }).catch(() => {});
-        
-        const timestamp = Date.now();
-        if (startImage && startImage.startsWith('data:image')) {
-          const base64Data = startImage.replace(/^data:image\/\w+;base64,/, '');
-          const filename = `start_${variantId}_${sessionId}_${timestamp}.png`;
-          await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
-          startImagePath = `/snapshots/${filename}`;
-        }
-        
-        if (latestImage && latestImage.startsWith('data:image') && latestImage !== startImage) {
-          const base64Data = latestImage.replace(/^data:image\/\w+;base64,/, '');
-          const filename = `end_${variantId}_${sessionId}_${timestamp}.png`;
-          await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
-          latestImagePath = `/snapshots/${filename}`;
-        }
+        // Local file storage disabled for Edge runtime compatibility.
+        // Use R2 or database storage for images in future iterations.
+        console.log("Local filesystem storage disabled.");
       }
     } catch(err) {
       console.error("Failed to save image files to disk:", err);
@@ -83,7 +66,7 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
     // Store this insight as an event in the DB so it acts as "visual memory"
     const db = getDb(env);
     await db.insert(events).values({
-      id: crypto.randomUUID(),
+      id: globalThis.crypto.randomUUID(),
       visitorId,
       sessionId,
       variantId,

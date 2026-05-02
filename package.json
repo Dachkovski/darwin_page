@@ -15,7 +15,7 @@
     "research-cycle": "npm run analyze && npm run promote-winner && npm run evolve"
   },
   "dependencies": {
-    "better-sqlite3": "^12.9.0",
+    "@libsql/client": "^0.17.3",
     "drizzle-orm": "^0.45.2",
     "duck-duck-scrape": "^2.2.7",
     "lucide-react": "^1.14.0",

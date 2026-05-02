@@ -20,7 +20,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
   const router = useRouter();
   
   // If activeMetricName is still the old 'default_score' from the DB, map it visually to the first preset.
-  const resolvedMetricName = initialConfig?.activeMetricName === 'default_score' 
+  const resolvedMetricName = (initialConfig?.activeMetricName as any) === 'default_score' 
     ? PRESET_METRICS[0].name 
     : (initialConfig?.activeMetricName || PRESET_METRICS[0].name);
 

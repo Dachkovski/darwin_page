@@ -1,13 +1,14 @@
 import { db } from "@/db";
 import { variants, researchLogs, events, optimizationConfigs } from "@/db/schema";
-import { desc, sql } from "drizzle-orm";
+import { desc, sql, asc } from "drizzle-orm";
 import AdminActions from "@/components/AdminActions";
 import AdminConfigPanel from "@/components/AdminConfigPanel";
+import AnalyticsDashboard, { ChartDataPoint } from "@/components/AnalyticsDashboard";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  const allVariants = await db.select().from(variants).orderBy(desc(variants.generation));
+  const allVariants = await db.select().from(variants).orderBy(asc(variants.generation));
   const logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
   const configs = await db.select().from(optimizationConfigs).limit(1);
   const initialConfig = configs.length > 0 ? configs[0] : null;
@@ -23,6 +24,43 @@ export default async function AdminDashboard() {
 
   const config = configs[0];
 
+  // Process data for the Analytics Dashboard
+  const chartData: ChartDataPoint[] = allVariants.map(variant => {
+    const vEvents = eventCounts.filter(e => e.variantId === variant.id);
+    const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
+    const ctaClicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
+    const interactions = vEvents.find(e => e.eventType === 'interaction_click')?.count || 0;
+    const bounces = vEvents.find(e => e.eventType === 'bounce')?.count || 0;
+
+    const ctaClickRate = views > 0 ? (ctaClicks / views) * 100 : 0;
+    const bounceRate = views > 0 ? (bounces / views) * 100 : 0;
+    const interactionRate = views > 0 ? (interactions / views) * 100 : 0;
+
+    // A simplified proxy score for the chart (normally this comes from metricSnapshots)
+    // Here we recalculate it to show real-time live data
+    let score = 0;
+    if (config?.scoreWeightsJson) {
+      try {
+        const w = JSON.parse(config.scoreWeightsJson);
+        score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) - ((bounceRate/100) * (w.bounce_rate || 0));
+      } catch (e) {}
+    }
+
+    return {
+      generation: variant.generation,
+      variantId: variant.id,
+      visitors: views,
+      ctaClicks,
+      ctaClickRate,
+      bounceRate,
+      interactionRate,
+      score: score * 100 // Scale up for better readability on chart
+    };
+  });
+
+  // For the list view, we want descending order
+  const listVariants = [...allVariants].reverse();
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-300 font-mono p-8">
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
@@ -37,13 +75,16 @@ export default async function AdminDashboard() {
 
         <AdminConfigPanel initialConfig={initialConfig} />
 
+        {/* Analytics Dashboard */}
+        <AnalyticsDashboard data={chartData} />
+
         <div className="grid lg:grid-cols-3 gap-8">
           
           {/* Main Column: Variants */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <h2 className="text-xl font-semibold text-white">Generations & Variants</h2>
             
-            {allVariants.map((variant) => {
+            {listVariants.map((variant) => {
               const vEvents = eventCounts.filter(e => e.variantId === variant.id);
               const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
               const clicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;

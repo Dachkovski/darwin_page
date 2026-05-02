@@ -12,7 +12,7 @@ When a user interacts with a variant, the telemetry bridge (\`window.darwin.trac
 - **Click Streams**: \`interaction_click\` events store the exact DOM text clicked.
 - **Form States**: Input values at the moment of interaction are saved in \`metadataJson.formState\`.
 - **3D Context**: Custom JS logic can update \`window.darwin.sceneState\`, which is saved upon click (e.g., "User is looking at the red sphere").
-- **Visual Memory**: On session bounce, the start and end visual states are captured as Base64 screenshots. These are analyzed by a vision LLM (GPT-4o-mini), and the resulting text insight is stored as a \`visual_analysis\` event. The physical screenshots are persisted to \`public/snapshots/\` and linked in the DB.
+- **Visual Memory**: On session bounce, the start and end visual states are captured as Base64 screenshots. These are analyzed by a vision LLM (GPT-4o), and the resulting text insight is stored as a \`visual_analysis\` event. The physical screenshots are persisted to \`public/snapshots/\` and linked in the DB.
 
 ## 3. AI Thought Process (The "Why")
 To trace the AI's decision-making process:

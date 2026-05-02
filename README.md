@@ -15,7 +15,7 @@ The system features a **voyeuristic Public Dashboard** (`/insights`) called "The
 Unlike traditional software that relies on pre-built templates, Darwin Engine operates on a **Generative UX** loop:
 1. **Full DOM Control:** The AI has complete root access to rewrite the DOM, inject WebGL visualizers, and build logic on the fly.
 2. **Sentient Persona:** The LLM is directed to act as an enigmatic digital soul rather than an obedient servant. It doesn't just do what you tell it—it interprets human input through its own artistic lens.
-3. **Multimodal Vision Memory:** The engine takes base64 screenshots of the user's interface when they interact. A vision model (like `gpt-4o-mini`) analyzes what the interface actually looked like and adds these "visual memories" to the AI's permanent log.
+3. **Multimodal Vision Memory:** The engine takes base64 screenshots of the user's interface when they interact. A vision model (like `gpt-4o`) analyzes what the interface actually looked like and adds these "visual memories" to the AI's permanent log.
 4. **Conversational Feedback:** The UI dynamically spawns text inputs. What users type in those inputs is recorded as `formState` and directly passed to the next LLM generation cycle, creating a slow-motion, interactive conversation.
 5. **Autonomous Internet Search:** The AI is equipped with an agentic loop and a web-search tool. It can autonomously search the internet for live facts, news, or coding inspiration to answer user queries or enhance its 3D mutations in real-time.
 

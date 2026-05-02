@@ -3,6 +3,7 @@ import { events, variants } from "@/db/schema";
 import { desc, eq, isNotNull, sql } from "drizzle-orm";
 import Link from "next/link";
 import { Activity, Brain, Eye, MessageSquare, Clock, Users } from "lucide-react";
+import { ActivityChart, EngagementChart } from "@/components/InsightsCharts";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Cache for 60 seconds
@@ -81,6 +82,43 @@ export default async function InsightsDashboard() {
     } catch(err) {}
   });
 
+  // 4. Chart Data: Interactions over time
+  const activityDataMap: Record<string, number> = {};
+  clickEvents.forEach(e => {
+    const d = new Date(e.timestamp);
+    const key = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:00`;
+    activityDataMap[key] = (activityDataMap[key] || 0) + 1;
+  });
+  const activityData = Object.entries(activityDataMap)
+    .map(([name, interactions]) => ({ name, interactions }))
+    .reverse(); // Reverse to get chronological order since clickEvents is DESC
+
+  // 5. Chart Data: Engagement by Generation
+  const engagementMap: Record<string, { total: number, count: number }> = {};
+  timeEvents.forEach(e => {
+    try {
+      const meta = JSON.parse(e.metadataJson || '{}');
+      if (meta.seconds) {
+        const variant = allVariants.find(v => v.id === e.variantId);
+        const gen = variant ? `Gen ${variant.generation}` : 'Unknown';
+        if (!engagementMap[gen]) engagementMap[gen] = { total: 0, count: 0 };
+        engagementMap[gen].total += meta.seconds;
+        engagementMap[gen].count += 1;
+      }
+    } catch(err) {}
+  });
+  const engagementData = Object.entries(engagementMap)
+    .map(([name, {total, count}]) => ({
+      name,
+      seconds: Math.round(total / count)
+    }))
+    // Sort numerically by generation number to avoid "Gen 10" coming before "Gen 2"
+    .sort((a, b) => {
+      const numA = parseInt(a.name.replace('Gen ', '')) || 0;
+      const numB = parseInt(b.name.replace('Gen ', '')) || 0;
+      return numA - numB;
+    });
+
   return (
     <div className="min-h-screen bg-black text-neutral-200 font-sans selection:bg-purple-900 selection:text-white">
       {/* Decorative Background */}
@@ -134,6 +172,29 @@ export default async function InsightsDashboard() {
             <div className="text-4xl font-black text-white">{totalHours}h</div>
             <div className="text-sm font-medium text-neutral-500 uppercase tracking-widest">Collective Time Lost</div>
             <div className="text-xs text-neutral-600 mt-2">Total hours spent by humans engaging with the entity.</div>
+          </div>
+        </section>
+
+        {/* LIVE ANALYTICS CHARTS */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-purple-400" /> Interaction Frequency
+              </h3>
+              <p className="text-sm text-neutral-500">Live heartbeat of human consciousness engaging with the machine.</p>
+            </div>
+            <ActivityChart data={activityData} />
+          </div>
+
+          <div className="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-cyan-400" /> Deep Engagement
+              </h3>
+              <p className="text-sm text-neutral-500">Average time (seconds) humans get lost in each evolutionary generation.</p>
+            </div>
+            <EngagementChart data={engagementData} />
           </div>
         </section>
 

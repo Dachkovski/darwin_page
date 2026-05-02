@@ -32,13 +32,15 @@ export default function LandingPageRenderer({ variant }: { variant: PageVariant 
           Autonomous Optimization Loop Active
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent max-w-4xl">
-          {variant.hero_headline}
-        </h1>
+        <h1 
+          className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 bg-gradient-to-br from-white to-neutral-500 bg-clip-text text-transparent max-w-4xl"
+          dangerouslySetInnerHTML={{ __html: variant.hero_headline }}
+        />
         
-        <p className="text-xl md:text-2xl text-neutral-400 mb-12 max-w-2xl leading-relaxed">
-          {variant.hero_subheadline}
-        </p>
+        <p 
+          className="text-xl md:text-2xl text-neutral-400 mb-12 max-w-2xl leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: variant.hero_subheadline }}
+        />
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <button 
@@ -68,8 +70,8 @@ export default function LandingPageRenderer({ variant }: { variant: PageVariant 
                 <div className="w-10 h-10 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 font-mono text-sm">
                   0{i + 1}
                 </div>
-                <h3 className="text-xl font-semibold text-white">{vp.split(':')[0]}</h3>
-                <p className="text-neutral-400 leading-relaxed">{vp.split(':')[1] || vp}</p>
+                <h3 className="text-xl font-semibold text-white" dangerouslySetInnerHTML={{ __html: vp.split(':')[0] }} />
+                <p className="text-neutral-400 leading-relaxed" dangerouslySetInnerHTML={{ __html: vp.split(':')[1] || vp }} />
               </div>
             ))}
           </div>

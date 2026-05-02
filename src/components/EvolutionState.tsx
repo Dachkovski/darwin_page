@@ -2,12 +2,14 @@ export default function EvolutionState({
   generation,
   variantId,
   score,
-  lastMutation
+  lastMutation,
+  activeMetricName
 }: {
   generation: number;
   variantId: string;
   score: number;
   lastMutation: string;
+  activeMetricName: string;
 }) {
   return (
     <div className="fixed bottom-4 right-4 z-50 bg-neutral-900/80 backdrop-blur-md border border-neutral-800 text-neutral-300 text-xs p-4 rounded-xl shadow-2xl w-72 font-mono flex flex-col gap-2">
@@ -27,9 +29,9 @@ export default function EvolutionState({
         <span className="text-neutral-500">Variant:</span>
         <span className="text-white">{variantId}</span>
       </div>
-      <div className="flex justify-between">
+      <div className="flex flex-col gap-1 mt-1">
         <span className="text-neutral-500">Optimizing for:</span>
-        <span className="text-white text-right">CTA Click Rate +<br/>Scroll Depth</span>
+        <span className="text-white text-right break-words line-clamp-3">{activeMetricName}</span>
       </div>
       <div className="flex justify-between mt-1 pt-2 border-t border-neutral-800/50">
         <span className="text-neutral-500">Current Score:</span>

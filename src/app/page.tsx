@@ -2,7 +2,7 @@ import AppSandboxRenderer, { AppVariant } from "@/components/AppSandboxRenderer"
 import EvolutionState from "@/components/EvolutionState";
 import Tracker from "@/components/Tracker";
 import { db } from "@/db";
-import { variants } from "@/db/schema";
+import { variants, optimizationConfigs } from "@/db/schema";
 import { eq, desc, and, isNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 
@@ -57,6 +57,14 @@ export default async function Home() {
 
   const trackingId = (activeVariantData as any).id || "fallback";
 
+  let activeMetricName = "Unknown Metric";
+  try {
+    const configs = await db.select().from(optimizationConfigs).limit(1);
+    if (configs.length > 0 && configs[0].activeMetricName) {
+      activeMetricName = configs[0].activeMetricName;
+    }
+  } catch(e) {}
+
   return (
     <>
       <Tracker variantId={trackingId} visitorId={visitorId} />
@@ -66,6 +74,7 @@ export default async function Home() {
         variantId={trackingId}
         score={score}
         lastMutation={lastMutation}
+        activeMetricName={activeMetricName}
       />
     </>
   );

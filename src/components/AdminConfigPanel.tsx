@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export const PRESET_METRICS = [
   {
@@ -16,14 +17,36 @@ export const PRESET_METRICS = [
 ];
 
 export default function AdminConfigPanel({ initialConfig }: { initialConfig: any }) {
-  const [config, setConfig] = useState(initialConfig || {
-    autoPromoteEnabled: false,
-    minVisitorsPerVariant: 10,
-    llmSystemPrompt: "You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.",
-    optimizationGoal: PRESET_METRICS[0].goal,
-    activeMetricName: PRESET_METRICS[0].name,
-    scoreWeightsJson: JSON.stringify(PRESET_METRICS[0].weights)
+  const router = useRouter();
+  
+  // If activeMetricName is still the old 'default_score' from the DB, map it visually to the first preset.
+  const resolvedMetricName = initialConfig?.activeMetricName === 'default_score' 
+    ? PRESET_METRICS[0].name 
+    : (initialConfig?.activeMetricName || PRESET_METRICS[0].name);
+
+  const [config, setConfig] = useState({
+    autoPromoteEnabled: initialConfig?.autoPromoteEnabled ?? false,
+    minVisitorsPerVariant: initialConfig?.minVisitorsPerVariant ?? 10,
+    llmSystemPrompt: initialConfig?.llmSystemPrompt || "You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.",
+    optimizationGoal: initialConfig?.optimizationGoal || PRESET_METRICS[0].goal,
+    activeMetricName: resolvedMetricName,
+    scoreWeightsJson: initialConfig?.scoreWeightsJson || JSON.stringify(PRESET_METRICS[0].weights)
   });
+
+  // Keep state in sync with server updates from router.refresh()
+  useEffect(() => {
+    if (initialConfig) {
+      setConfig(prev => ({
+        ...prev,
+        autoPromoteEnabled: initialConfig.autoPromoteEnabled,
+        minVisitorsPerVariant: initialConfig.minVisitorsPerVariant,
+        llmSystemPrompt: initialConfig.llmSystemPrompt,
+        optimizationGoal: initialConfig.optimizationGoal,
+        activeMetricName: initialConfig.activeMetricName,
+        scoreWeightsJson: initialConfig.scoreWeightsJson
+      }));
+    }
+  }, [initialConfig]);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -37,6 +60,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
         body: JSON.stringify(config)
       });
       setSaved(true);
+      router.refresh();
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       alert("Failed to save config.");

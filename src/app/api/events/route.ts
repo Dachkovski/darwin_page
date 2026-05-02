@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { events } from "@/db/schema";
 
-export const runtime = "edge"; // Enable edge runtime for Cloudflare support
-
 export async function POST(req: NextRequest) {
   try {
     const text = await req.text();
@@ -31,6 +29,17 @@ export async function POST(req: NextRequest) {
 
     if (valuesToInsert.length > 0) {
       await db.insert(events).values(valuesToInsert);
+    }
+
+    // Check if autonomous evolution is enabled
+    const configs = await db.select().from(optimizationConfigs).limit(1);
+    if (configs.length > 0 && configs[0].autoPromoteEnabled) {
+      // Fire and forget the evolution cycle!
+      // In a real CF Worker, you'd use ctx.waitUntil, but for this MVP,
+      // a background promise works locally.
+      import('@/lib/evolution').then(({ runEvolutionCycle }) => {
+        runEvolutionCycle(process.env).catch(e => console.error('Autonomous loop error:', e));
+      });
     }
 
     return NextResponse.json({ success: true });

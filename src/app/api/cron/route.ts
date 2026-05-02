@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runEvolutionCycle } from "@/lib/evolution";
 
-export const runtime = "edge";
-
 export async function GET(req: NextRequest) {
   // Optional security: Ensure cron is called via Cloudflare internal token or header
   const authHeader = req.headers.get('Authorization');

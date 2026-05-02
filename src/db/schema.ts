@@ -45,7 +45,9 @@ export const optimizationConfigs = sqliteTable('optimization_configs', {
   minVisitorsPerVariant: integer('min_visitors_per_variant').notNull().default(100),
   minExperimentDays: integer('min_experiment_days').notNull().default(3),
   minScoreImprovement: real('min_score_improvement').notNull().default(0.10),
-  autoPromoteEnabled: integer('auto_promote_enabled', { mode: 'boolean' }).notNull().default(false)
+  autoPromoteEnabled: integer('auto_promote_enabled', { mode: 'boolean' }).notNull().default(false),
+  llmSystemPrompt: text('llm_system_prompt').notNull().default('You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.'),
+  optimizationGoal: text('optimization_goal').notNull().default('Increase CTA clicks while reducing bounce rate and dead clicks.')
 });
 
 export const researchLogs = sqliteTable('research_logs', {

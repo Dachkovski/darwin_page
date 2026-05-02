@@ -22,8 +22,8 @@ export async function runEvolutionCycle(env: any) {
   const uniqueVisitors = new Set(variantEvents.map(e => e.visitorId)).size;
 
   // Example simple autonomous threshold from DB could be configurable
-  if (uniqueVisitors < 5) {
-    return { status: 'skipped', message: `Not enough data yet. Only ${uniqueVisitors} visitors.` };
+  if (uniqueVisitors < config.minVisitorsPerVariant) {
+    return { status: 'skipped', message: `Not enough data yet. Only ${uniqueVisitors} visitors out of ${config.minVisitorsPerVariant} required.` };
   }
 
   // --- ANALYZE PHASE ---
@@ -36,10 +36,15 @@ export async function runEvolutionCycle(env: any) {
   let observation = "Auto-generated analysis.";
   let hypothesis = "We need a more engaging CTA.";
 
-  const userPrompt = `Variant ID: ${variant.id}\nScore: ${score}\nCTA Rate: ${ctaClickRate}\nJSON: ${variant.contentJson}\nProvide an observation and hypothesis.`;
+  const userPrompt = `Variant ID: ${variant.id}
+Score: ${score}
+CTA Rate: ${ctaClickRate}
+Goal: ${config.optimizationGoal}
+JSON: ${variant.contentJson}
+Based on the goal and metrics, provide an observation and hypothesis.`;
   
   try {
-    const llmResponse = await callLLM(userPrompt, `You are DarwinPage UX Researcher. Reply in strict JSON: {"observation":"", "hypothesis":""}`);
+    const llmResponse = await callLLM(userPrompt, `${config.llmSystemPrompt} Reply in strict JSON: {"observation":"", "hypothesis":""}`);
     const parsed = JSON.parse(llmResponse.replace(/```json/g, '').replace(/```/g, ''));
     observation = parsed.observation || observation;
     hypothesis = parsed.hypothesis || hypothesis;
@@ -58,11 +63,15 @@ export async function runEvolutionCycle(env: any) {
   });
 
   // --- EVOLVE PHASE ---
-  const evolvePrompt = `Old Content:\n${variant.contentJson}\nObservation: ${observation}\nHypothesis: ${hypothesis}\nGenerate NEW JSON content strictly matching the previous schema.`;
+  const evolvePrompt = `Goal: ${config.optimizationGoal}
+Old Content:\n${variant.contentJson}
+Observation: ${observation}
+Hypothesis: ${hypothesis}
+Generate NEW JSON content strictly matching the previous schema that solves the hypothesis.`;
   let newContentJson = variant.contentJson;
 
   try {
-    const llmResponse = await callLLM(evolvePrompt, `You are DarwinPage Generator. Return valid JSON only.`);
+    const llmResponse = await callLLM(evolvePrompt, `${config.llmSystemPrompt} Return valid JSON only.`);
     let jsonStr = llmResponse.replace(/```json/g, '').replace(/```/g, '').trim();
     JSON.parse(jsonStr); // validate
     newContentJson = jsonStr;

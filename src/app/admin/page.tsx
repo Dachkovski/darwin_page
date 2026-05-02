@@ -1,17 +1,17 @@
 import { db } from "@/db";
 import { variants, researchLogs, events, optimizationConfigs } from "@/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import AdminActions from "@/components/AdminActions";
+import AdminConfigPanel from "@/components/AdminConfigPanel";
 
-export const dynamic = 'force-dynamic'; // Ensure it doesn't cache
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  // Fetch data
   const allVariants = await db.select().from(variants).orderBy(desc(variants.generation));
   const logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
   const configs = await db.select().from(optimizationConfigs).limit(1);
+  const initialConfig = configs.length > 0 ? configs[0] : null;
   
-  // Aggregate events (rudimentary, for display before 'analyze' is run)
   const eventCounts = await db
     .select({
       variantId: events.variantId,
@@ -34,6 +34,8 @@ export default async function AdminDashboard() {
           </div>
           <AdminActions />
         </header>
+
+        <AdminConfigPanel initialConfig={initialConfig} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           

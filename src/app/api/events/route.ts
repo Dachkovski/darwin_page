@@ -41,6 +41,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Fire and forget vision analysis if we got images on a bounce
+    const bounceEvent = body.events.find((e: any) => e.eventType === 'bounce');
+    if (bounceEvent && (body.startImage || body.latestImage)) {
+      import('@/lib/vision').then(({ analyzeVisuals }) => {
+        analyzeVisuals(body.startImage, body.latestImage, bounceEvent.variantId, bounceEvent.visitorId, bounceEvent.sessionId, process.env)
+          .catch(e => console.error('Vision API error:', e));
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to track events:", error);

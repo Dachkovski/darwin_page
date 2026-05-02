@@ -40,30 +40,25 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
     // Fetch ALL events for this specific user across all variants they've seen
     const allUserEvents = await db.select().from(events).where(eq(events.visitorId, targetVisitorId)).orderBy(desc(events.timestamp)); // desc to get newest first
     variantEvents = allUserEvents.filter(e => e.variantId === variant.id);
-    
+
     // Build context
     const interactions = allUserEvents.filter(e => e.eventType === 'interaction_click').map(e => {
-        try { 
-          const meta = JSON.parse(e.metadataJson || '{}');
-          let text = meta.text;
-          if (meta.formState) {
-            text += ` (User Inputted: ${meta.formState})`;
-          }
-          if (meta.sceneState) {
-            text += ` [3D/DOM Scene State: ${meta.sceneState}]`;
-          } else if (meta.domText) {
-            text += ` [Visible Text on screen: ${meta.domText}]`;
-          }
-          return text;
-        } catch(err){ return null; }
+      try {
+        const meta = JSON.parse(e.metadataJson || '{}');
+        let text = meta.text;
+        if (meta.formState) {
+          text += ` (User Inputted: ${meta.formState})`;
+        }
+        return text;
+      } catch (err) { return null; }
     }).filter(Boolean);
-    
+
     // Calculate total time
     let totalTime = 0;
     allUserEvents.filter(e => e.eventType === 'time_on_page').forEach(e => {
-        try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch(err){}
+      try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch (err) { }
     });
-    
+
     // COOLDOWN CHECK: Don't evolve if the current variant was created less than 30 seconds ago
     // or if they haven't spent enough time on it yet to justify an evolution.
     const now = Date.now();
@@ -74,12 +69,17 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
 
     // Collect JS errors
     const jsErrors = allUserEvents.filter(e => e.eventType === 'js_error' && e.variantId === variant.id).map(e => {
-        try { return JSON.parse(e.metadataJson || '{}').error; } catch(err){ return null; }
+      try { return JSON.parse(e.metadataJson || '{}').error; } catch (err) { return null; }
+    }).filter(Boolean);
+
+    // Collect Multimodal Visual Analysis
+    const visualAnalyses = allUserEvents.filter(e => e.eventType === 'visual_analysis' && e.variantId === variant.id).map(e => {
+        try { return JSON.parse(e.metadataJson || '{}').insight; } catch(err){ return null; }
     }).filter(Boolean);
 
     let currentVariantTime = 0;
     variantEvents.filter(e => e.eventType === 'time_on_page').forEach(e => {
-        try { currentVariantTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch(err){}
+      try { currentVariantTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch (err) { }
     });
     const currentVariantClicks = variantEvents.filter(e => e.eventType === 'interaction_click').length;
     const hasBounced = variantEvents.some(e => e.eventType === 'bounce');
@@ -93,6 +93,7 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
 This evolution is HIGHLY PERSONALIZED for a specific user.
 The user has spent a total of ${totalTime} seconds interacting with your previous variants.
 Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.${disinterestPrompt}
+${visualAnalyses.length > 0 ? `MULTIMODAL VISUAL ANALYSIS (What the user actually saw): ${visualAnalyses[0]}` : ''}
 ${jsErrors.length > 0 ? `CRITICAL BUG REPORT: Your previous Javascript code threw the following errors: ${jsErrors.slice(0, 5).join(' | ')}. YOU MUST FIX THESE ERRORS IN THIS NEW VERSION!` : ''}
 CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!
 EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input field (see 'User Inputted:' above), YOU MUST RESPOND DIRECTLY to their input in the new UI! Treat this as a slow-motion conversation. Acknowledge what they wrote in the new headline or body text.`;
@@ -108,19 +109,19 @@ EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input fiel
   const pageViews = variantEvents.filter(e => e.eventType === 'page_view').length;
   const ctaClicks = variantEvents.filter(e => e.eventType === 'cta_click').length;
   const ctaClickRate = pageViews > 0 ? ctaClicks / pageViews : 0;
-  
+
   const timeEvents = variantEvents.filter(e => e.eventType === 'time_on_page');
   let totalSeconds = 0;
   timeEvents.forEach(e => {
     try {
       const meta = JSON.parse(e.metadataJson || '{}');
       if (meta.seconds) totalSeconds += meta.seconds;
-    } catch (err) {}
+    } catch (err) { }
   });
   // Cap at 300s (5 mins) for normalization
   const avgTimeOnPage = timeEvents.length > 0 ? Math.min(totalSeconds / timeEvents.length, 300) : 0;
   const normalizedTimeOnPage = avgTimeOnPage / 300; // 0 to 1
-  
+
   const bounces = variantEvents.filter(e => e.eventType === 'bounce').length;
   const bounceRate = pageViews > 0 ? bounces / pageViews : 0;
 
@@ -135,7 +136,7 @@ CTA Rate: ${ctaClickRate}
 Goal: ${config.optimizationGoal}
 JSON: ${variant.contentJson}
 Based on the goal and metrics, provide an observation and hypothesis.`;
-  
+
   try {
     const llmResponse = await callLLM(userPrompt, `${config.llmSystemPrompt} Reply in strict JSON: {"observation":"", "hypothesis":""}`);
     let jsonStr = llmResponse.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
@@ -160,7 +161,7 @@ Based on the goal and metrics, provide an observation and hypothesis.`;
 
   // --- EVOLVE PHASE ---
   let parsedOld = { html: "", css: "", js: "" };
-  try { parsedOld = JSON.parse(variant.contentJson); } catch(e){}
+  try { parsedOld = JSON.parse(variant.contentJson); } catch (e) { }
 
   const evolvePrompt = `Goal: ${config.optimizationGoal}
 
@@ -174,7 +175,6 @@ You can build entire multi-page experiences (Single Page Applications) by using 
 You have access to Tailwind CSS classes in your HTML. Do NOT use markdown.
 IMPORTANT CAPABILITY: The window already has \`THREE\` (Three.js r128) and \`gsap\` loaded! You are highly encouraged to build mind-blowing interactive 3D pages, WebGL visualizers, and particle effects to wow the user.
 To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name', { any_metadata: 'here' })\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
-MEMORY LOGGING: You can dynamically update \`window.darwin.sceneState = "user is looking at the blue cube"\` in your JS logic at any time. When the user interacts, this state is saved to their memory log so you know EXACTLY what they saw during the interaction! Use this aggressively for 3D state tracking!
 
 Return STRICTLY a JSON object with this exact schema:
 {
@@ -200,10 +200,10 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   const newGen = variant.generation + 1;
   const uniqueHash = Math.random().toString(36).substring(2, 10);
   const newVariantId = `hero_${String.fromCharCode(97 + (newGen % 26))}_${String(newGen).padStart(3, '0')}_${uniqueHash}`;
-  
+
   const parsedContent = JSON.parse(newContentJson);
   parsedContent.id = newVariantId;
-  
+
   // Update old, insert new
   if (!variant.visitorId || variant.visitorId === targetVisitorId) {
     // If it's a global evolution, archive the old global variant

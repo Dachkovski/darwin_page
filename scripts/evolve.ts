@@ -32,7 +32,7 @@ async function evolve() {
 
   // 3. Prompt the LLM to generate the new variant
   console.log(`   🧠 Asking LLM to generate the next generation...`);
-  
+
   const evolvePrompt = `
 Current Variant Content:
 ${parentVariant.contentJson}
@@ -49,7 +49,6 @@ You can build entire multi-page experiences (Single Page Applications) by using 
 You have access to Tailwind CSS classes in your HTML. Do NOT use markdown.
 IMPORTANT CAPABILITY: The window already has \`THREE\` (Three.js r128) and \`gsap\` loaded! You are highly encouraged to build mind-blowing interactive 3D pages, WebGL visualizers, and particle effects to wow the user.
 To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name', { any_metadata: 'here' })\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
-MEMORY LOGGING: You can dynamically update \`window.darwin.sceneState = "user is looking at the blue cube"\` in your JS logic at any time. When the user interacts, this state is saved to their memory log so you know EXACTLY what they saw during the interaction! Use this aggressively for 3D state tracking!
 
 Return STRICTLY a JSON object with this exact schema:
 {
@@ -63,7 +62,7 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
 
   try {
     const llmResponse = await callLLM(evolvePrompt, "You are the creative engine. Return valid JSON only.");
-    
+
     // We need to parse out the JSON in case the LLM wrapped it in markdown blocks
     let jsonString = llmResponse;
     if (jsonString.includes('```json')) {
@@ -87,7 +86,7 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   // 4. Create new variant
   const newGeneration = parentVariant.generation + 1;
   const newVariantId = `hero_${String.fromCharCode(97 + (newGeneration % 26))}_${String(newGeneration).padStart(3, '0')}`;
-  
+
   // Inject ID into the content JSON for consistency
   const parsedNewContent = JSON.parse(newContentJson);
   parsedNewContent.id = newVariantId;

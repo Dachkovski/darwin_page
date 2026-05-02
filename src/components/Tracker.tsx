@@ -36,12 +36,20 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     let eventQueue: any[] = [];
     let flushInterval: NodeJS.Timeout;
 
+    let startImage: string | null = null;
+    let latestImage: string | null = null;
+
     const flushQueue = () => {
       if (eventQueue.length === 0) return;
-      const payload = JSON.stringify({ events: eventQueue });
+      const payload = JSON.stringify({ events: eventQueue, startImage, latestImage });
       
-      // Use sendBeacon for reliable delivery, especially during page unload
-      navigator.sendBeacon("/api/events", payload);
+      // Use fetch keepalive instead of sendBeacon to avoid strict 64kb limits with base64 images
+      fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true
+      }).catch(e => console.error("Tracking error:", e));
       eventQueue = [];
     };
 
@@ -150,6 +158,9 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === 'DARWIN_EVENT') {
         track(e.data.eventType, e.data.metadata || {});
+      } else if (e.data?.type === 'DARWIN_IMAGE') {
+        if (e.data.startImage) startImage = e.data.startImage;
+        if (e.data.latestImage) latestImage = e.data.latestImage;
       }
     };
     window.addEventListener("message", handleMessage);

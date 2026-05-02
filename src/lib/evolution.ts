@@ -43,7 +43,10 @@ export async function runEvolutionCycle(env: any) {
   const avgTimeOnPage = timeEvents.length > 0 ? Math.min(totalSeconds / timeEvents.length, 300) : 0;
   const normalizedTimeOnPage = avgTimeOnPage / 300; // 0 to 1
   
-  const score = (ctaClickRate * (weights.cta_click_rate || 0)) + (normalizedTimeOnPage * (weights.time_on_page || 0));
+  const bounces = variantEvents.filter(e => e.eventType === 'bounce').length;
+  const bounceRate = pageViews > 0 ? bounces / pageViews : 0;
+
+  const score = (ctaClickRate * (weights.cta_click_rate || 0)) + (bounceRate * (weights.bounce_rate || 0)) + (normalizedTimeOnPage * (weights.time_on_page || 0));
 
   let observation = "Auto-generated analysis.";
   let hypothesis = "We need a more engaging CTA.";

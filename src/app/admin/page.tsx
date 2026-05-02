@@ -72,7 +72,7 @@ export default async function AdminDashboard() {
     if (config?.scoreWeightsJson) {
       try {
         const w = JSON.parse(config.scoreWeightsJson);
-        score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) - ((bounceRate/100) * (w.bounce_rate || 0)) + (normalizedTimeOnPage * (w.time_on_page || 0));
+        score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) + ((bounceRate/100) * (w.bounce_rate || 0)) + (normalizedTimeOnPage * (w.time_on_page || 0));
       } catch (e) {}
     }
 

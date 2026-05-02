@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "analyze": "tsx scripts/analyze.ts",
+    "evolve": "tsx scripts/evolve.ts",
+    "promote-winner": "tsx scripts/promoteWinner.ts",
+    "research-cycle": "npm run analyze && npm run promote-winner && npm run evolve"
   },
   "dependencies": {
     "better-sqlite3": "^12.9.0",

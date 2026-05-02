@@ -73,12 +73,42 @@ export default function Tracker({ variantId }: { variantId: string }) {
     };
     window.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // 5. Global Interaction Tracker (Heatmap / Dead Clicks)
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      // Determine if it's meant to be clickable
+      const isInteractive = 
+        target.tagName === 'BUTTON' || 
+        target.tagName === 'A' || 
+        target.closest('button') !== null || 
+        target.closest('a') !== null;
+
+      // Ignore the internal Admin/Evolution State widget
+      if (target.closest('.fixed.bottom-4')) return;
+
+      let textContent = target.innerText || target.textContent || "";
+      textContent = textContent.trim().substring(0, 60).replace(/\n/g, ' '); // Clean up text
+
+      // Don't track clicks on completely empty backgrounds
+      if (!textContent && target.tagName === 'DIV') return;
+
+      track("interaction_click", {
+        tag: target.tagName,
+        text: textContent || "no text",
+        isInteractive
+      });
+    };
+    window.addEventListener("click", handleGlobalClick);
+
     // Make track available globally so CTAs can call it
     (window as any).trackEvent = track;
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("click", handleGlobalClick);
       delete (window as any).trackEvent;
     };
   }, [variantId]);

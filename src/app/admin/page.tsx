@@ -1,0 +1,135 @@
+import { db } from "@/db";
+import { variants, researchLogs, events, optimizationConfigs } from "@/db/schema";
+import { desc, eq, sql } from "drizzle-orm";
+import AdminActions from "@/components/AdminActions";
+
+export const dynamic = 'force-dynamic'; // Ensure it doesn't cache
+
+export default async function AdminDashboard() {
+  // Fetch data
+  const allVariants = await db.select().from(variants).orderBy(desc(variants.generation));
+  const logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
+  const configs = await db.select().from(optimizationConfigs).limit(1);
+  
+  // Aggregate events (rudimentary, for display before 'analyze' is run)
+  const eventCounts = await db
+    .select({
+      variantId: events.variantId,
+      eventType: events.eventType,
+      count: sql<number>`count(*)`,
+    })
+    .from(events)
+    .groupBy(events.variantId, events.eventType);
+
+  const config = configs[0];
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-300 font-mono p-8">
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+        
+        <header className="flex items-center justify-between border-b border-neutral-800 pb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Darwin Engine</h1>
+            <p className="text-neutral-500 text-sm">Internal Evolutionary Dashboard</p>
+          </div>
+          <AdminActions />
+        </header>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          
+          {/* Main Column: Variants */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <h2 className="text-xl font-semibold text-white">Generations & Variants</h2>
+            
+            {allVariants.map((variant) => {
+              const vEvents = eventCounts.filter(e => e.variantId === variant.id);
+              const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
+              const clicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
+
+              return (
+                <div key={variant.id} className="p-5 border border-neutral-800 rounded-xl bg-neutral-900/50 flex flex-col gap-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-lg font-bold text-white">{variant.id}</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
+                          variant.status === 'active' ? 'bg-blue-900/50 text-blue-400 border border-blue-800' :
+                          variant.status === 'winner' ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-800' :
+                          'bg-neutral-800 text-neutral-500 border border-neutral-700'
+                        }`}>
+                          {variant.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-neutral-500">Generation {variant.generation} • Parent: {variant.parentVariantId || 'None'}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-neutral-500">Live Metrics (Raw)</div>
+                      <div className="text-sm text-white">{views} Views • {clicks} CTA Clicks</div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-black/50 rounded border border-neutral-800 text-xs">
+                    <span className="text-neutral-500 block mb-1">Hypothesis:</span>
+                    <span className="text-neutral-300">{variant.hypothesis || 'No hypothesis provided.'}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Sidebar */}
+          <div className="flex flex-col gap-8">
+            
+            {/* Optimization Config */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-semibold text-white">Fitness Function</h2>
+              <div className="p-5 border border-neutral-800 rounded-xl bg-neutral-900/50 text-xs flex flex-col gap-3">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Active Metric:</span>
+                  <span className="text-white">{config?.activeMetricName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Min Visitors:</span>
+                  <span className="text-white">{config?.minVisitorsPerVariant}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Min Days:</span>
+                  <span className="text-white">{config?.minExperimentDays}</span>
+                </div>
+                <div className="mt-2 pt-2 border-t border-neutral-800">
+                  <span className="text-neutral-500 block mb-2">Weights:</span>
+                  <pre className="text-[10px] text-emerald-400 bg-black p-2 rounded">
+                    {config?.scoreWeightsJson ? JSON.stringify(JSON.parse(config.scoreWeightsJson), null, 2) : '{}'}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            {/* Research Log */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-semibold text-white">Research Log</h2>
+              <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2">
+                {logs.map((log) => (
+                  <div key={log.id} className="p-4 border border-neutral-800 rounded-xl bg-neutral-900/50 text-xs">
+                    <div className="flex justify-between text-neutral-500 mb-2 border-b border-neutral-800 pb-2">
+                      <span>Gen {log.generation}</span>
+                      <span>{new Date(log.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div className="mb-1"><span className="text-blue-400 font-semibold">{log.action}</span></div>
+                    <div className="text-neutral-400 mb-1">{log.observation}</div>
+                    <div className="text-neutral-300 italic mb-2">"{log.hypothesis}"</div>
+                    <div className="text-emerald-400 bg-emerald-950/30 p-2 rounded border border-emerald-900/50">
+                      ➜ {log.decision}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

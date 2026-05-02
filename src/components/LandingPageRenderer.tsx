@@ -63,7 +63,7 @@ export default function LandingPageRenderer({ variant }: { variant: PageVariant 
       <section className="border-t border-neutral-900 bg-neutral-950">
         <div className="max-w-6xl mx-auto px-6 py-24">
           <div className="grid md:grid-cols-3 gap-12">
-            {variant.value_propositions.map((vp, i) => (
+            {(variant.value_propositions || []).map((vp, i) => (
               <div key={i} className="flex flex-col gap-4">
                 <div className="w-10 h-10 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 font-mono text-sm">
                   0{i + 1}

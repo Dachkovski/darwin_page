@@ -4,16 +4,14 @@ import type { NextRequest } from 'next/server';
 export default function proxy(req: NextRequest) {
   const url = req.nextUrl;
   
-  // Protect admin panel and admin APIs
-  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/admin')) {
+  // Protect admin API and login trigger
+  if (url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/admin/login')) {
     const basicAuth = req.headers.get('authorization');
     const authPassword = process.env.ADMIN_PASSWORD;
 
-    // Only enforce if ADMIN_PASSWORD is set in env
     if (authPassword) {
       if (basicAuth) {
         const authValue = basicAuth.split(' ')[1];
-        // atob is supported in Edge Runtime
         const [user, pwd] = atob(authValue).split(':');
 
         if (pwd === authPassword) {
@@ -34,5 +32,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/admin/login', '/api/admin/:path*'],
 };

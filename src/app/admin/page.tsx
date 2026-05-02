@@ -4,10 +4,27 @@ import { desc, sql, asc } from "drizzle-orm";
 import AdminActions from "@/components/AdminActions";
 import AdminConfigPanel from "@/components/AdminConfigPanel";
 import AnalyticsDashboard, { ChartDataPoint } from "@/components/AnalyticsDashboard";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { Lock, Unlock } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
+  // Check Basic Auth status from headers
+  const authHeader = headers().get('authorization');
+  const authPassword = process.env.ADMIN_PASSWORD;
+  
+  let isAdmin = false;
+  if (authPassword && authHeader) {
+    try {
+      const authValue = authHeader.split(' ')[1];
+      const pwd = atob(authValue).split(':')[1];
+      if (pwd === authPassword) isAdmin = true;
+    } catch(e) {}
+  }
+  if (!authPassword) isAdmin = true; // Open access if no password configured
+
   const allVariants = await db.select().from(variants).orderBy(asc(variants.generation));
   const logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
   const configs = await db.select().from(optimizationConfigs).limit(1);
@@ -82,10 +99,31 @@ export default async function AdminDashboard() {
             <h1 className="text-3xl font-bold text-white mb-2">Darwin Engine</h1>
             <p className="text-neutral-500 text-sm">Internal Evolutionary Dashboard</p>
           </div>
-          <AdminActions />
+          <div className="flex items-center gap-4">
+            {!isAdmin ? (
+              <Link href="/admin/login" className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm rounded-lg flex items-center gap-2 transition-colors">
+                <Lock className="w-4 h-4" />
+                Login to Edit
+              </Link>
+            ) : (
+              <div className="flex items-center gap-4">
+                <div className="px-4 py-2 bg-emerald-900/30 text-emerald-400 text-sm rounded-lg flex items-center gap-2 border border-emerald-900/50">
+                  <Unlock className="w-4 h-4" />
+                  Admin
+                </div>
+                <AdminActions />
+              </div>
+            )}
+          </div>
         </header>
 
-        <AdminConfigPanel initialConfig={initialConfig} />
+        {isAdmin ? (
+          <AdminConfigPanel initialConfig={initialConfig} />
+        ) : (
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 text-center text-sm text-neutral-400">
+            Control panels are hidden. Login to configure optimization goals and trigger manual mutations.
+          </div>
+        )}
 
         {/* Analytics Dashboard */}
         <AnalyticsDashboard data={chartData} />

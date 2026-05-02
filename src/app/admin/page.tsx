@@ -220,9 +220,26 @@ export default async function AdminDashboard() {
                                 <ul className="space-y-1">
                                   {visualAnalyses.map(e => {
                                     try { 
+                                      const meta = JSON.parse(e.metadataJson || '{}');
                                       return (
-                                        <li key={e.id} className="text-sm text-purple-200 italic leading-snug">
-                                          "{JSON.parse(e.metadataJson || '{}').insight}"
+                                        <li key={e.id} className="flex flex-col gap-3">
+                                          <span className="text-sm text-purple-200 italic leading-snug">"{meta.insight}"</span>
+                                          {(meta.startImagePath || meta.latestImagePath) && (
+                                            <div className="flex flex-wrap gap-2 mt-1 bg-black/30 p-2 rounded-lg border border-purple-900/30">
+                                              {meta.startImagePath && (
+                                                <div className="flex flex-col gap-1">
+                                                  <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Session Start</span>
+                                                  <img src={meta.startImagePath} alt="Start UI" className="w-48 h-auto object-cover rounded shadow-md border border-neutral-800" />
+                                                </div>
+                                              )}
+                                              {meta.latestImagePath && (
+                                                <div className="flex flex-col gap-1">
+                                                  <span className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">Session End</span>
+                                                  <img src={meta.latestImagePath} alt="End UI" className="w-48 h-auto object-cover rounded shadow-md border border-neutral-800" />
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
                                         </li>
                                       );
                                     } catch(err){ return null; }

@@ -31,27 +31,20 @@ export default async function AdminDashboard() {
   const configs = await db.select().from(optimizationConfigs).limit(1);
   const initialConfig = configs.length > 0 ? configs[0] : null;
   
-  const eventCounts = await db
-    .select({
-      variantId: events.variantId,
-      eventType: events.eventType,
-      count: sql<number>`count(*)`,
-    })
-    .from(events)
-    .groupBy(events.variantId, events.eventType);
+  const allEvents = await db.select().from(events);
 
   console.log("Admin Panel Variants Count:", allVariants.length);
-  console.log("Admin Panel Event Counts Length:", eventCounts.length);
+  console.log("Admin Panel Events Count:", allEvents.length);
 
   const config = configs[0];
 
   // Process data for the Analytics Dashboard
   const chartData: ChartDataPoint[] = allVariants.map(variant => {
-    const vEvents = eventCounts.filter(e => e.variantId === variant.id);
-    const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
-    const ctaClicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
-    const interactions = vEvents.find(e => e.eventType === 'interaction_click')?.count || 0;
-    const bounces = vEvents.find(e => e.eventType === 'bounce')?.count || 0;
+    const vEvents = allEvents.filter(e => e.variantId === variant.id);
+    const views = vEvents.filter(e => e.eventType === 'page_view').length;
+    const ctaClicks = vEvents.filter(e => e.eventType === 'cta_click').length;
+    const interactions = vEvents.filter(e => e.eventType === 'interaction_click').length;
+    const bounces = vEvents.filter(e => e.eventType === 'bounce').length;
     
     // Calculate Time On Page
     const timeEvents = vEvents.filter(e => e.eventType === 'time_on_page');
@@ -139,10 +132,10 @@ export default async function AdminDashboard() {
             <h2 className="text-xl font-semibold text-white">Generations & Variants</h2>
             
             {listVariants.map((variant) => {
-              const vEvents = eventCounts.filter(e => e.variantId === variant.id);
-              const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
-              const ctaClicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
-              const interactionClicks = vEvents.find(e => e.eventType === 'interaction_click')?.count || 0;
+              const vEvents = allEvents.filter(e => e.variantId === variant.id);
+              const views = vEvents.filter(e => e.eventType === 'page_view').length;
+              const ctaClicks = vEvents.filter(e => e.eventType === 'cta_click').length;
+              const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click').length;
               const totalInteractions = ctaClicks + interactionClicks;
 
               return (

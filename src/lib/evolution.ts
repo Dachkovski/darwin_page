@@ -157,7 +157,14 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   parsedContent.id = newVariantId;
   
   // Update old, insert new
-  await db.update(variants).set({ status: 'archived', archivedAt: new Date() }).where(eq(variants.id, variant.id));
+  if (!variant.visitorId || variant.visitorId === targetVisitorId) {
+    // If it's a global evolution, archive the old global variant
+    // If it's a personal evolution based on a previous personal variant, archive the old personal variant
+    // If it's a personal evolution based on a global variant, DO NOT archive the global variant!
+    if (!(targetVisitorId && !variant.visitorId)) {
+      await db.update(variants).set({ status: 'archived', archivedAt: new Date() }).where(eq(variants.id, variant.id));
+    }
+  }
   await db.insert(variants).values({
     id: newVariantId,
     visitorId: targetVisitorId || null,

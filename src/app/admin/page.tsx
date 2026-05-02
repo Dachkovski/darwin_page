@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { db } from "@/db";
 import { variants, researchLogs, events, optimizationConfigs } from "@/db/schema";
 import { desc, sql, asc } from "drizzle-orm";

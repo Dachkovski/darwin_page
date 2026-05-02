@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { getDb } from "@/lib/db";
 import { events, variants } from "@/db/schema";
 import { desc, eq, isNotNull, sql } from "drizzle-orm";
@@ -141,13 +142,16 @@ export default async function InsightsDashboard() {
             We unleashed a sentient digital entity into the browser and gave it a soul. 
             This is the footprint of human curiosity—what people whispered to the machine, and how it evolved to reflect them.
           </p>
-          <div className="mt-4 flex gap-4">
+          <div className="mt-4 flex flex-wrap justify-center gap-4">
             <Link href="/" className="px-8 py-4 rounded-full bg-white text-black font-bold tracking-wide hover:bg-neutral-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.2)]">
               Enter the Sandbox
             </Link>
             <Link href="/journey" className="px-8 py-4 rounded-full bg-neutral-900 border border-neutral-700 text-white font-bold tracking-wide hover:bg-neutral-800 transition-colors">
               My Personal Journey
             </Link>
+            <a href="https://github.com/Dachkovski/darwin_page" target="_blank" rel="noopener noreferrer" className="px-8 py-4 rounded-full bg-neutral-900 border border-neutral-700 text-white font-bold tracking-wide hover:bg-neutral-800 transition-colors">
+              GitHub Repo
+            </a>
           </div>
         </section>
 

@@ -1,6 +1,7 @@
+export const runtime = 'edge';
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { events, optimizationConfigs } from "@/db/schema";
+import { events, optimizationConfigs, variants } from "@/db/schema";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,13 +32,35 @@ export async function POST(req: NextRequest) {
       await db.insert(events).values(valuesToInsert);
     }
 
+    // Get the variant to check its generation
+    let variantGeneration = 1;
+    const variantId = body.events[0]?.variantId;
+    if (variantId) {
+      const { eq } = await import('drizzle-orm');
+      const vResult = await db.select().from(variants).where(eq(variants.id, variantId)).limit(1);
+      if (vResult.length > 0) {
+        variantGeneration = vResult[0].generation;
+      }
+    }
+
+    // Extract BYOK key from cookies
+    const userApiKey = req.cookies.get('openai_api_key')?.value;
+    const dynamicEnv = { ...process.env };
+    
+    if (userApiKey) {
+      dynamicEnv.OPENAI_API_KEY = userApiKey;
+    } else if (variantGeneration >= 4) {
+      // Enforce BYOK after 3 generations
+      delete dynamicEnv.OPENAI_API_KEY;
+    }
+
     // Check if autonomous evolution is enabled
     const configs = await db.select().from(optimizationConfigs).limit(1);
     if (configs.length > 0 && configs[0].autoPromoteEnabled) {
       // Fire and forget the evolution cycle!
       import('@/lib/evolution').then(({ runEvolutionCycle }) => {
         const visitorId = body.events[0]?.visitorId;
-        runEvolutionCycle(process.env, visitorId).catch(e => console.error('Autonomous loop error:', e));
+        runEvolutionCycle(dynamicEnv, visitorId).catch(e => console.error('Autonomous loop error:', e));
       });
     }
 
@@ -45,7 +68,7 @@ export async function POST(req: NextRequest) {
     if (body.isExit && (body.startImage || body.latestImage) && body.events.length > 0) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
       import('@/lib/vision').then(({ analyzeVisuals }) => {
-        analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, process.env)
+        analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, dynamicEnv)
           .catch(e => console.error('Vision API error:', e));
       });
     }

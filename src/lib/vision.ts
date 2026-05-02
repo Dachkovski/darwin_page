@@ -53,24 +53,28 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
     let latestImagePath = null;
     
     try {
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      const snapshotsDir = path.join(process.cwd(), 'public', 'snapshots');
-      await fs.mkdir(snapshotsDir, { recursive: true }).catch(() => {});
-      
-      const timestamp = Date.now();
-      if (startImage && startImage.startsWith('data:image')) {
-        const base64Data = startImage.replace(/^data:image\/\w+;base64,/, '');
-        const filename = `start_${variantId}_${sessionId}_${timestamp}.png`;
-        await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
-        startImagePath = `/snapshots/${filename}`;
-      }
-      
-      if (latestImage && latestImage.startsWith('data:image') && latestImage !== startImage) {
-        const base64Data = latestImage.replace(/^data:image\/\w+;base64,/, '');
-        const filename = `end_${variantId}_${sessionId}_${timestamp}.png`;
-        await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
-        latestImagePath = `/snapshots/${filename}`;
+      if (env && env.CF_PAGES) {
+        console.log("Skipping local file save on Cloudflare Pages");
+      } else {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const snapshotsDir = path.join(process.cwd(), 'public', 'snapshots');
+        await fs.mkdir(snapshotsDir, { recursive: true }).catch(() => {});
+        
+        const timestamp = Date.now();
+        if (startImage && startImage.startsWith('data:image')) {
+          const base64Data = startImage.replace(/^data:image\/\w+;base64,/, '');
+          const filename = `start_${variantId}_${sessionId}_${timestamp}.png`;
+          await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
+          startImagePath = `/snapshots/${filename}`;
+        }
+        
+        if (latestImage && latestImage.startsWith('data:image') && latestImage !== startImage) {
+          const base64Data = latestImage.replace(/^data:image\/\w+;base64,/, '');
+          const filename = `end_${variantId}_${sessionId}_${timestamp}.png`;
+          await fs.writeFile(path.join(snapshotsDir, filename), base64Data, 'base64');
+          latestImagePath = `/snapshots/${filename}`;
+        }
       }
     } catch(err) {
       console.error("Failed to save image files to disk:", err);

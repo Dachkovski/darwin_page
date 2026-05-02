@@ -31,7 +31,19 @@ export async function runEvolutionCycle(env: any) {
   const ctaClicks = variantEvents.filter(e => e.eventType === 'cta_click').length;
   const ctaClickRate = pageViews > 0 ? ctaClicks / pageViews : 0;
   
-  const score = (ctaClickRate * weights.cta_click_rate); // simplified for edge fast run
+  const timeEvents = variantEvents.filter(e => e.eventType === 'time_on_page');
+  let totalSeconds = 0;
+  timeEvents.forEach(e => {
+    try {
+      const meta = JSON.parse(e.metadataJson || '{}');
+      if (meta.seconds) totalSeconds += meta.seconds;
+    } catch (err) {}
+  });
+  // Cap at 300s (5 mins) for normalization
+  const avgTimeOnPage = timeEvents.length > 0 ? Math.min(totalSeconds / timeEvents.length, 300) : 0;
+  const normalizedTimeOnPage = avgTimeOnPage / 300; // 0 to 1
+  
+  const score = (ctaClickRate * (weights.cta_click_rate || 0)) + (normalizedTimeOnPage * (weights.time_on_page || 0));
 
   let observation = "Auto-generated analysis.";
   let hypothesis = "We need a more engaging CTA.";

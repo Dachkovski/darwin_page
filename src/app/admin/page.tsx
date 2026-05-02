@@ -31,6 +31,18 @@ export default async function AdminDashboard() {
     const ctaClicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
     const interactions = vEvents.find(e => e.eventType === 'interaction_click')?.count || 0;
     const bounces = vEvents.find(e => e.eventType === 'bounce')?.count || 0;
+    
+    // Calculate Time On Page
+    const timeEvents = vEvents.filter(e => e.eventType === 'time_on_page');
+    let totalSeconds = 0;
+    timeEvents.forEach(e => {
+      try {
+        const meta = JSON.parse(e.metadataJson || '{}');
+        if (meta.seconds) totalSeconds += meta.seconds;
+      } catch (err) {}
+    });
+    const avgTimeOnPage = timeEvents.length > 0 ? Math.min(totalSeconds / timeEvents.length, 300) : 0;
+    const normalizedTimeOnPage = avgTimeOnPage / 300;
 
     const ctaClickRate = views > 0 ? (ctaClicks / views) * 100 : 0;
     const bounceRate = views > 0 ? (bounces / views) * 100 : 0;
@@ -42,7 +54,7 @@ export default async function AdminDashboard() {
     if (config?.scoreWeightsJson) {
       try {
         const w = JSON.parse(config.scoreWeightsJson);
-        score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) - ((bounceRate/100) * (w.bounce_rate || 0));
+        score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) - ((bounceRate/100) * (w.bounce_rate || 0)) + (normalizedTimeOnPage * (w.time_on_page || 0));
       } catch (e) {}
     }
 

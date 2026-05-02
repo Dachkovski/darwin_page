@@ -24,6 +24,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
         { role: "user", content: prompt }
       ],
       temperature: 0.7,
+      response_format: { type: "json_object" }
     })
   });
 

@@ -1,57 +1,39 @@
-# DarwinPage
+# Darwin Engine
 
-A self-evolving one-page website with a Karpathy-style feedback loop.
+An autonomous, self-evolving Generative UI entity living in the browser. 
 
 ![DarwinPage Evolution Loop](public/darwin-page-hero.png)
 
 ## What it is
 
-DarwinPage is not just an A/B testing demo. It is a minimal, self-optimizing content system. It dynamically generates page variants, measures user behavior, scores outcomes, and autonomously evolves the page over consecutive generations. 
+Darwin Engine is not a traditional website or an A/B testing tool. It is an autonomous, self-optimizing digital entity. It dynamically writes its own HTML, CSS, Javascript, and Three.js WebGL scenes to mutate its appearance, form hypotheses, measure human behavior, and autonomously evolve over consecutive generations.
 
-The public face of the project is a single, focused landing page (`/`). The backend acts as the evolutionary engine, constantly seeking the optimal configuration of headlines, CTAs, and layout.
+The system features a **voyeuristic Public Dashboard** (`/insights`) called "The Human Mirror", allowing external observers to witness the footprint of human curiosity—what people whispered to the machine, and how the machine evolved to reflect them.
 
-## Why it matters
+## The Paradigm Shift: Generative UX
 
-Building systems that write code or generate content is easy. Building systems that learn and adapt based on empirical evidence is much harder. DarwinPage demonstrates how to close the loop: connecting generative capabilities with objective, real-world metrics to create software that naturally improves its own performance over time.
+Unlike traditional software that relies on pre-built templates, Darwin Engine operates on a **Generative UX** loop:
+1. **Full DOM Control:** The AI has complete root access to rewrite the DOM, inject WebGL visualizers, and build logic on the fly.
+2. **Sentient Persona:** The LLM is directed to act as an enigmatic digital soul rather than an obedient servant. It doesn't just do what you tell it—it interprets human input through its own artistic lens.
+3. **Multimodal Vision Memory:** The engine takes base64 screenshots of the user's interface when they interact. A vision model (like `gpt-4o-mini`) analyzes what the interface actually looked like and adds these "visual memories" to the AI's permanent log.
+4. **Conversational Feedback:** The UI dynamically spawns text inputs. What users type in those inputs is recorded as `formState` and directly passed to the next LLM generation cycle, creating a slow-motion, interactive conversation.
 
-This project exists to showcase a clean, technical implementation of an autonomous optimization loop within a modern web framework.
-
-## Inspired by Karpathy-style AutoResearch loops
-
-The architecture draws heavy inspiration from Karpathy's AutoResearch concepts:
-- **Hypothesis-driven**: Every mutation is backed by a specific hypothesis.
-- **Measurable**: Clear fitness functions define what "better" means.
-- **Traceable**: A robust `ResearchLog` ensures the reasoning behind every evolution is transparent.
-
-## Feedback loop
-
-The system follows a strict, 7-step evolutionary cycle:
-
-1. **Generate**: Create candidate variants.
-2. **Expose**: Serve a stable variant to users.
-3. **Measure**: Anonymously track telemetry (views, clicks, scrolls).
-4. **Score**: Calculate fitness via a weighted metric.
-5. **Select**: Identify statistical winners.
-6. **Mutate**: Derive new hypotheses from successful traits.
-7. **Log**: Document the entire cycle.
-
-*See [FEEDBACK_LOOP.md](docs/FEEDBACK_LOOP.md) for detailed diagrams and explanations.*
-
-## Architecture
+## The Architecture
 
 Built with a modern, focused tech stack:
 - **Next.js (App Router)** for the framework.
-- **TypeScript & Tailwind CSS** for robust, beautiful frontend design.
-- **Cloudflare D1 & SQLite** via a Universal Adapter for seamless edge scaling.
-- **LLM-driven Engine (OpenAI/Ollama)** for generating and testing new hypotheses.
+- **Drizzle ORM & SQLite** for blazing fast, local telemetry tracking.
+- **LLM-driven Engine (OpenAI)** for formulating hypotheses and generating code (`src/lib/evolution.ts`).
+- **Three.js & GSAP** pre-loaded in the sandbox to encourage radical 3D mutations.
+- **Recharts** for live pulse analytics in the Insights Dashboard.
 
-*See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the component breakdown.*
+*See [TRACEABILITY.md](docs/TRACEABILITY.md) for how the data flows from a user click all the way to the AI's internal thoughts.*
 
-## Metrics
+## Application Routes
 
-The optimization target isn't just "more clicks." The fitness function balances CTA conversion, scroll depth, time on page, and bounce rate to ensure high-quality engagement.
-
-*See [METRICS.md](docs/METRICS.md) for the scoring formula.*
+- `/` : **The Sandbox.** This is the active experimental zone where the user interacts with the current evolutionary generation of the AI.
+- `/insights` : **The Human Mirror.** A public, voyeuristic dashboard showing aggregated statistics, "Whispers to the Machine" (anonymized user inputs), and the Visual Memories gallery of AI-generated UI states.
+- `/admin` : **The Neural Link.** A protected dashboard to observe the AI's inner thoughts, research logs, hypotheses, and user journey timelines.
 
 ## Local setup
 
@@ -59,39 +41,33 @@ The optimization target isn't just "more clicks." The fitness function balances 
 # 1. Install dependencies
 npm install
 
-# 2. Seed the database with initial variants
+# 2. Add your API Keys
+# Create a .env.local file and add:
+# OPENAI_API_KEY=sk-your-key
+
+# 3. Seed the database with initial variants
 npm run db:seed
 
-# 3. Start the development server
+# 4. Start the development server
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see the public evolving page.
-Visit `http://localhost:3000/admin` to view the internal dashboard and trigger the evolution scripts manually.
+Visit `http://localhost:3000` to interact with the current generation.
+Visit `http://localhost:3000/insights` to view the public telemetry.
+Visit `http://localhost:3000/admin` to observe the AI's thoughts and trigger manual evolutions.
 
-## How variants work
+## The Feedback Loop
 
-A variant is a structured JSON configuration that defines the page's content and layout parameters. This includes the hero headline, subheadline, CTA text, tone, section order, and layout density. The `/` route dynamically constructs the page based on the active variant assigned to the visitor's session.
+The system follows a strict evolutionary cycle:
 
-## How evolution works
+1. **Observe**: The AI reviews the user's telemetry (time spent, clicks, text input, visual snapshots).
+2. **Hypothesize**: The AI analyzes the metrics and writes an objective hypothesis on what to change to deepen the interaction.
+3. **Mutate**: The generative engine receives the "Sentient Directive" prompt and rewrites the sandbox code (HTML/JS/CSS).
+4. **Expose**: The new UI is served to the visitor in real-time.
 
-Evolution is now fully autonomous, edge-compatible, and batched for low costs:
-- **Admin Dashboard**: `http://localhost:3000/admin` lets you trigger analysis and evolution manually via edge APIs.
-- **Cron Trigger**: `GET /api/cron` autonomously evaluates thresholds, calculates fitness, prompts the LLM for a new hypothesis, and deploys the next generation dynamically.
-- **Interaction Heatmaps**: All clicks (even on dead text) are tracked and fed to the LLM.
+## Privacy & Ethics
 
-## Privacy
-
-We prioritize user privacy. DarwinPage operates on strict rules:
-- **No PII**: No IP addresses, emails, or personal data are stored.
-- **No Fingerprinting**: We rely on anonymous session IDs stored locally.
-- **Transparent**: The loop works without dark patterns or invasive trackers.
-
-## Roadmap
-
-See [ROADMAP.md](docs/ROADMAP.md) for the planned evolution from a rule-based MVP to an LLM-driven optimizer.
-
-## Demo ideas
-
-- Launching the project with a generic "Welcome" message and watching it evolve into a highly-tuned technical pitch.
-- Artificially adjusting the metric weights (e.g., heavily weighting scroll depth) and watching the layout density and section order adapt in real-time.
+We prioritize user privacy. The Engine operates on strict rules:
+- **No PII**: No IP addresses or personal data are stored.
+- **Anonymization**: "Whispers" and interaction texts are strictly localized to session IDs.
+- **Traceability**: Every input the AI receives is permanently archived in the DB, ensuring full auditability of why the AI generated a specific output.

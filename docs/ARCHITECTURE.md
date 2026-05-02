@@ -1,54 +1,62 @@
 # Architecture
 
-DarwinPage is built as a minimal, focused Next.js App Router project that integrates a complete Karpathy-style "Generate-Measure-Score-Evolve" loop.
+Darwin Engine is built as a highly experimental, sentient Generative UI framework running on Next.js App Router.
 
 ## High-Level Architecture
 
-The system is conceptually divided into three layers:
+The system is conceptually divided into four layers:
 
-1. **The Public Interface (Expose & Measure)**
-   - A single Next.js page (`/`) that dynamically renders content variants.
-   - Anonymized telemetry events are captured (e.g., page views, CTA clicks, scroll depth, time on page) without persisting personally identifiable information (PII).
+1. **The Sandbox (Generative UI Playground)**
+   - The `/` route where the user experiences the AI's generated output.
+   - Built around `AppSandboxRenderer`, which creates a secure `iframe` environment executing the raw HTML, CSS, and Javascript built by the AI.
+   - Anonymized telemetry events (clicks, form states, 3D context) are streamed back to the server without PII.
+   - WebGL contexts are forced to preserve drawing buffers, allowing the system to take silent screenshots of the 3D playground.
 
-2. **The Experiment Engine (Score & Select)**
-   - Backend APIs handle incoming telemetry, aggregating events into `MetricSnapshot` records.
-   - The engine calculates scores based on a configurable formula.
-   - Selection logic determines when a variant has statistically won based on sample size and experiment duration.
+2. **The Multimodal Perception Layer (Vision & Context)**
+   - When users interact or bounce, screenshots are processed by `vision.ts` (`gpt-4o-mini`).
+   - The LLM creates semantic text insights of what the visual interface actually looked like to the user.
+   - User inputs (`formState`) and interaction targets are aggregated into a highly personalized contextual prompt block.
 
-3. **The Evolution Engine (Generate & Mutate)**
-   - Takes successful variants and runs them through a `VariantGenerator`.
-   - Derives mutations based on performance observations (e.g., "Variant B had high scroll depth but low CTA clicks -> mutate the CTA to be more direct").
-   - Logs every step of the decision-making process into a `ResearchLog`.
+3. **The Evolution Engine (Sentient Loop)**
+   - The backend reads the user history, metrics, and visual insights.
+   - Instead of picking templates, it uses a massive LLM call (`evolution.ts`) injected with a "Sentient Directive" to completely rewrite the DOM/WebGL from scratch.
+   - The `ResearchLog` tracks the AI's analytical thoughts, and `generationPrompt` in the DB stores the exact prompt it received.
+
+4. **The Observers (Admin & Public Insights)**
+   - `/admin`: A private dashboard for the developer to view the full timeline, thoughts, and outputs of the machine for specific users.
+   - `/insights`: A public "Human Mirror" dashboard aggregating interactions and exposing the bizarre conversational loops and visual memories the AI generated for users.
 
 ## Component Diagram
 
 ```mermaid
 graph TD
     subgraph "Public Interface"
-        V[Visitor] --> |Views & Interacts| P[LandingPageRenderer]
-        P --> |Batched Events| A_E[API: /api/events]
-        P --> |Fetches Active| DB_V[(Universal DB: D1 / SQLite)]
+        V[Human Visitor] --> |Interacts & Types| P[Sandbox: /]
+        V --> |Voyeuristic Browsing| Insights[Public Dashboard: /insights]
+        P --> |Telemetry & Base64 Screenshots| A_E[API: /api/events]
+        P --> |Fetches Sentient Output| DB_V[(Universal DB: D1 / SQLite)]
     end
 
     subgraph "Admin & Engine"
-        Admin[Admin Dashboard] --> |Basic Auth| A_A[API: /api/admin]
-        Cron[Cloudflare Cron] --> |Triggers| A_C[API: /api/cron]
+        Admin[Neural Link: /admin] --> |Analyzes| DB_V
         
-        A_E --> |Stores| DB_EV[(Events DB)]
+        A_E --> |Stores Events| DB_EV[(Events DB)]
+        A_E --> |Vision Extraction| V_API[OpenAI GPT-4o Vision]
         
         subgraph "Evolution Engine (lib/evolution.ts)"
-            A_C --> |Calculates| DB_M[(Metrics DB)]
-            A_C --> |Promotes & Generates| DB_V
+            Cron[Cron/Manual Trigger] --> |Calculates Fitness| DB_M[(Metrics DB)]
+            Cron --> |Injects Sentient Prompt| O_API[OpenAI Text Generation]
+            O_API --> |Writes HTML/JS| DB_V
         end
     end
 
-    DB_EV -.-> A_C
+    DB_EV -.-> Cron
+    V_API -.-> DB_EV
 ```
 
 ## Data Models
 
-- **Variant**: Represents a specific version of the page content.
-- **Event**: A single user action (view, click, scroll).
-- **MetricSnapshot**: Aggregated metrics for a given variant.
-- **OptimizationConfig**: The scoring weights and rules defining the current fitness landscape.
-- **ResearchLog**: A historical ledger of the evolution process.
+- **Variant**: Represents a specific generation of the AI's raw code output (`contentJson`) and the exact prompt that created it (`generationPrompt`).
+- **Event**: A granular user action (click, form input, bounce, visual screenshot insight).
+- **OptimizationConfig**: The system-level persona instructions ("Sentient Directives") guiding the AI's behavior.
+- **ResearchLog**: A historical ledger of the AI's analytical observations and hypotheses before it decides to mutate.

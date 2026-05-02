@@ -1,19 +1,21 @@
 # Roadmap
 
 ## Phase 1: The Core Loop (MVP)
-- [ ] Initialize Next.js app with App Router and Tailwind CSS
-- [ ] Set up SQLite with Drizzle/Prisma ORM
-- [ ] Implement robust anonymous telemetry tracking
-- [ ] Build the `/` dynamic rendering system
-- [ ] Implement `scripts/analyze.ts` for scoring
-- [ ] Implement rule-based mutation generator
-- [ ] Create simple local `/admin` dashboard
-- [ ] Ensure GitHub-ready documentation
+- [x] Initialize Next.js app with App Router and Tailwind CSS
+- [x] Set up SQLite with Drizzle ORM
+- [x] Implement robust anonymous telemetry tracking
+- [x] Build the `/` dynamic rendering system
+- [x] Implement `scripts/analyze.ts` for scoring
+- [x] Create simple local `/admin` dashboard
+- [x] Ensure GitHub-ready documentation
 
-## Phase 2: LLM Integration
-- [ ] Replace rule-based mutations with LLM-powered candidate generation
-- [ ] Allow the LLM to read the `ResearchLog` for context
-- [ ] Implement structured JSON output parsing for the LLM mutations
+## Phase 2: LLM Integration & Edge Deployment
+- [x] Replace rule-based mutations with LLM-powered candidate generation
+- [x] Allow the LLM to read the `ResearchLog` for context
+- [x] Implement structured JSON output parsing for the LLM mutations
+- [x] Cloudflare D1 Database Adapter for production scale
+- [x] API-driven evolution loop for Cron Triggers (`/api/cron`)
+- [x] Global Interaction tracking (Heatmaps & Dead Clicks)
 
 ## Phase 3: Advanced Optimization
 - [ ] Multi-armed bandit traffic routing (instead of uniform A/B)

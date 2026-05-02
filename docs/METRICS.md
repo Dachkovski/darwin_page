@@ -33,6 +33,9 @@ Events are captured on the client and sent to `/api/events`. Tracked data includ
 - `scroll_depth_25`, `_50`, `_75`, `_100`
 - `time_on_page`
 - `bounce`
-- `outbound_click`
+- `interaction_click` (Global heatmap tracking for "Dead Clicks" and actual interactions)
+
+### Event Batching
+To reduce server costs and database write operations (especially for Cloudflare D1), the client batches all events locally in a queue. The queue is flushed every 5 seconds or via `navigator.sendBeacon` when the user leaves the page.
 
 All data is strictly anonymized (see Privacy policy in README).

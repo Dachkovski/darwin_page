@@ -42,7 +42,8 @@ The system follows a strict, 7-step evolutionary cycle:
 Built with a modern, focused tech stack:
 - **Next.js (App Router)** for the framework.
 - **TypeScript & Tailwind CSS** for robust, beautiful frontend design.
-- **SQLite & Drizzle/Prisma** for the lightweight local database.
+- **Cloudflare D1 & SQLite** via a Universal Adapter for seamless edge scaling.
+- **LLM-driven Engine (OpenAI/Ollama)** for generating and testing new hypotheses.
 
 *See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the component breakdown.*
 
@@ -74,11 +75,10 @@ A variant is a structured JSON configuration that defines the page's content and
 
 ## How evolution works
 
-Scripts located in the `scripts/` directory manage the lifecycle:
-- `npm run analyze`: Aggregates events and calculates scores.
-- `npm run promote-winner`: Selects a winner if statistical requirements are met.
-- `npm run evolve`: Generates the next generation of variants.
-- `npm run research-cycle`: Runs the entire loop end-to-end.
+Evolution is now fully autonomous, edge-compatible, and batched for low costs:
+- **Admin Dashboard**: `http://localhost:3000/admin` lets you trigger analysis and evolution manually via edge APIs.
+- **Cron Trigger**: `GET /api/cron` autonomously evaluates thresholds, calculates fitness, prompts the LLM for a new hypothesis, and deploys the next generation dynamically.
+- **Interaction Heatmaps**: All clicks (even on dead text) are tracked and fed to the LLM.
 
 ## Privacy
 

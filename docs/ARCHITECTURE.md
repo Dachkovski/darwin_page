@@ -25,27 +25,24 @@ The system is conceptually divided into three layers:
 ```mermaid
 graph TD
     subgraph "Public Interface"
-        V[Visitor] --> |Views| P[LandingPageRenderer]
-        P --> |Sends Events| A_E[API: /api/events]
-        P --> |Fetches Active| DB_V[(Variants DB)]
+        V[Visitor] --> |Views & Interacts| P[LandingPageRenderer]
+        P --> |Batched Events| A_E[API: /api/events]
+        P --> |Fetches Active| DB_V[(Universal DB: D1 / SQLite)]
     end
 
     subgraph "Admin & Engine"
-        Admin[Admin Dashboard] --> |Triggers| Scripts
-        Admin --> |Views| DB_M[(Metrics DB)]
+        Admin[Admin Dashboard] --> |Basic Auth| A_A[API: /api/admin]
+        Cron[Cloudflare Cron] --> |Triggers| A_C[API: /api/cron]
         
         A_E --> |Stores| DB_EV[(Events DB)]
         
-        subgraph "Scripts / Logic"
-            S_A[analyze.ts] --> |Calculates| DB_M
-            S_P[promoteWinner.ts] --> |Selects| DB_V
-            S_E[evolve.ts] --> |Generates| DB_V
+        subgraph "Evolution Engine (lib/evolution.ts)"
+            A_C --> |Calculates| DB_M[(Metrics DB)]
+            A_C --> |Promotes & Generates| DB_V
         end
     end
 
-    DB_EV -.-> S_A
-    S_A -.-> S_P
-    S_P -.-> S_E
+    DB_EV -.-> A_C
 ```
 
 ## Data Models

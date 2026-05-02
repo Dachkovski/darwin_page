@@ -140,6 +140,8 @@ export default async function AdminDashboard() {
               const ctaClicks = vEvents.filter(e => e.eventType === 'cta_click').length;
               const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click').length;
               const totalInteractions = ctaClicks + interactionClicks;
+              
+              const visualAnalyses = vEvents.filter(e => e.eventType === 'visual_analysis');
 
               return (
                 <div key={variant.id} className="p-5 border border-neutral-800 rounded-xl bg-neutral-900/50 flex flex-col gap-4">
@@ -167,6 +169,40 @@ export default async function AdminDashboard() {
                     <span className="text-neutral-500 block mb-1">Hypothesis:</span>
                     <span className="text-neutral-300">{variant.hypothesis || 'No hypothesis provided.'}</span>
                   </div>
+
+                  {visualAnalyses.length > 0 && (
+                    <div className="p-3 bg-purple-950/20 rounded border border-purple-900/40 text-xs">
+                      <span className="text-purple-400 font-semibold block mb-2">👁️ Multimodal Visual Insights:</span>
+                      <ul className="list-disc pl-4 space-y-1">
+                        {visualAnalyses.map(e => {
+                          try { 
+                            return <li key={e.id} className="text-neutral-300 italic">"{JSON.parse(e.metadataJson || '{}').insight}"</li> 
+                          } catch(err){ return null; }
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {interactionClicks > 0 && (
+                    <div className="p-3 bg-black/30 rounded border border-neutral-800 text-xs">
+                      <span className="text-neutral-500 font-semibold block mb-2">Recent User Interactions:</span>
+                      <ul className="list-disc pl-4 space-y-1">
+                        {vEvents.filter(e => e.eventType === 'interaction_click').slice(0, 5).map(e => {
+                          try { 
+                            const meta = JSON.parse(e.metadataJson || '{}');
+                            return (
+                              <li key={e.id} className="text-neutral-400">
+                                Clicked <span className="text-neutral-300">"{meta.text}"</span>
+                                {meta.formState && <span className="text-emerald-400 ml-1">(Input: {meta.formState})</span>}
+                                {meta.sceneState && <span className="text-blue-400 ml-1">[Scene: {meta.sceneState}]</span>}
+                                {meta.domText && <span className="text-neutral-500 ml-1" title={meta.domText}>[DOM Snapshot taken]</span>}
+                              </li>
+                            );
+                          } catch(err){ return null; }
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               );
             })}

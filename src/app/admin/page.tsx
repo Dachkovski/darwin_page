@@ -130,79 +130,93 @@ export default async function AdminDashboard() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           
-          {/* Main Column: Variants */}
+          {/* Main Column: User Journeys */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <h2 className="text-xl font-semibold text-white">Generations & Variants</h2>
+            <h2 className="text-xl font-semibold text-white">Live User Journeys</h2>
             
-            {listVariants.map((variant) => {
-              const vEvents = allEvents.filter(e => e.variantId === variant.id);
-              const views = vEvents.filter(e => e.eventType === 'page_view').length;
-              const ctaClicks = vEvents.filter(e => e.eventType === 'cta_click').length;
-              const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click').length;
-              const totalInteractions = ctaClicks + interactionClicks;
+            {Array.from(new Set([...allEvents].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).map(e => e.visitorId))).filter(Boolean).slice(0, 10).map(visitorId => {
+              const visitorEvents = allEvents.filter(e => e.visitorId === visitorId).sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
               
-              const visualAnalyses = vEvents.filter(e => e.eventType === 'visual_analysis');
+              // Get variants this user saw
+              const variantIdsSeen = Array.from(new Set(visitorEvents.map(e => e.variantId)));
+              const userVariants = allVariants.filter(v => variantIdsSeen.includes(v.id));
 
               return (
-                <div key={variant.id} className="p-5 border border-neutral-800 rounded-xl bg-neutral-900/50 flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
+                <div key={visitorId} className="p-6 border border-neutral-700 rounded-2xl bg-neutral-900 flex flex-col gap-6 shadow-xl">
+                  <div className="flex justify-between items-center border-b border-neutral-800 pb-4">
                     <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-lg font-bold text-white">{variant.id}</span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${
-                          variant.status === 'active' ? 'bg-blue-900/50 text-blue-400 border border-blue-800' :
-                          variant.status === 'winner' ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-800' :
-                          'bg-neutral-800 text-neutral-500 border border-neutral-700'
-                        }`}>
-                          {variant.status}
-                        </span>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        🧑‍💻 Visitor <span className="font-mono text-emerald-400 text-sm bg-emerald-950/50 px-2 py-1 rounded">{visitorId.split('-')[0]}...</span>
+                      </h3>
+                      <div className="text-xs text-neutral-500 mt-1">{visitorEvents.length} total events tracked</div>
+                    </div>
+                  </div>
+
+                  {userVariants.map(variant => {
+                    const vEvents = visitorEvents.filter(e => e.variantId === variant.id);
+                    const visualAnalyses = vEvents.filter(e => e.eventType === 'visual_analysis');
+                    const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click');
+                    
+                    // Find the research log for this generation
+                    const log = logs.find(l => l.generation === variant.generation);
+
+                    return (
+                      <div key={variant.id} className="p-4 border border-neutral-800 rounded-xl bg-black/40 flex flex-col gap-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-bold text-white mb-1">Variant {variant.id}</div>
+                            <div className="text-xs text-neutral-500">Generation {variant.generation}</div>
+                          </div>
+                        </div>
+
+                        {/* AI Thoughts (Research Log + Hypothesis) */}
+                        <div className="flex flex-col gap-2 p-3 bg-blue-950/10 rounded border border-blue-900/30 text-xs">
+                          <span className="text-blue-400 font-semibold block mb-1">🧠 LLM Thoughts & Hypothesis:</span>
+                          {log ? (
+                            <>
+                              <div className="text-neutral-400"><span className="text-neutral-500">Observation:</span> {log.observation}</div>
+                              <div className="text-neutral-300 italic">"{log.hypothesis}"</div>
+                            </>
+                          ) : (
+                            <span className="text-neutral-300 italic">"{variant.hypothesis || 'No specific hypothesis recorded.'}"</span>
+                          )}
+                        </div>
+
+                        {/* Visual Insights */}
+                        {visualAnalyses.length > 0 && (
+                          <div className="p-3 bg-purple-950/20 rounded border border-purple-900/40 text-xs">
+                            <span className="text-purple-400 font-semibold block mb-2">👁️ Multimodal Visual Insight:</span>
+                            <ul className="list-disc pl-4 space-y-1">
+                              {visualAnalyses.map(e => {
+                                try { return <li key={e.id} className="text-neutral-300 italic">"{JSON.parse(e.metadataJson || '{}').insight}"</li> } catch(err){ return null; }
+                              })}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* User Interactions */}
+                        {interactionClicks.length > 0 && (
+                          <div className="p-3 bg-neutral-900/80 rounded border border-neutral-800 text-xs">
+                            <span className="text-neutral-500 font-semibold block mb-2">User Actions on this variant:</span>
+                            <ul className="list-disc pl-4 space-y-1">
+                              {interactionClicks.map(e => {
+                                try { 
+                                  const meta = JSON.parse(e.metadataJson || '{}');
+                                  return (
+                                    <li key={e.id} className="text-neutral-400">
+                                      Clicked <span className="text-neutral-300">"{meta.text}"</span>
+                                      {meta.formState && <span className="text-emerald-400 ml-1">(Input: {meta.formState})</span>}
+                                      {meta.sceneState && <span className="text-blue-400 ml-1">[Scene: {meta.sceneState}]</span>}
+                                    </li>
+                                  );
+                                } catch(err){ return null; }
+                              })}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-xs text-neutral-500">Generation {variant.generation} • Parent: {variant.parentVariantId || 'None'}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-neutral-500">Live Metrics (Raw)</div>
-                      <div className="text-sm text-white">{views} Views • {totalInteractions} Interactions</div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 bg-black/50 rounded border border-neutral-800 text-xs">
-                    <span className="text-neutral-500 block mb-1">Hypothesis:</span>
-                    <span className="text-neutral-300">{variant.hypothesis || 'No hypothesis provided.'}</span>
-                  </div>
-
-                  {visualAnalyses.length > 0 && (
-                    <div className="p-3 bg-purple-950/20 rounded border border-purple-900/40 text-xs">
-                      <span className="text-purple-400 font-semibold block mb-2">👁️ Multimodal Visual Insights:</span>
-                      <ul className="list-disc pl-4 space-y-1">
-                        {visualAnalyses.map(e => {
-                          try { 
-                            return <li key={e.id} className="text-neutral-300 italic">"{JSON.parse(e.metadataJson || '{}').insight}"</li> 
-                          } catch(err){ return null; }
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-                  {interactionClicks > 0 && (
-                    <div className="p-3 bg-black/30 rounded border border-neutral-800 text-xs">
-                      <span className="text-neutral-500 font-semibold block mb-2">Recent User Interactions:</span>
-                      <ul className="list-disc pl-4 space-y-1">
-                        {vEvents.filter(e => e.eventType === 'interaction_click').slice(0, 5).map(e => {
-                          try { 
-                            const meta = JSON.parse(e.metadataJson || '{}');
-                            return (
-                              <li key={e.id} className="text-neutral-400">
-                                Clicked <span className="text-neutral-300">"{meta.text}"</span>
-                                {meta.formState && <span className="text-emerald-400 ml-1">(Input: {meta.formState})</span>}
-                                {meta.sceneState && <span className="text-blue-400 ml-1">[Scene: {meta.sceneState}]</span>}
-                                {meta.domText && <span className="text-neutral-500 ml-1" title={meta.domText}>[DOM Snapshot taken]</span>}
-                              </li>
-                            );
-                          } catch(err){ return null; }
-                        })}
-                      </ul>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               );
             })}

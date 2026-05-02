@@ -121,6 +121,14 @@ export default function Tracker({ variantId }: { variantId: string }) {
     };
     window.addEventListener("click", handleGlobalClick);
 
+    // 6. Listen for iframe sandbox events
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'DARWIN_EVENT') {
+        track(e.data.eventType, e.data.metadata || {});
+      }
+    };
+    window.addEventListener("message", handleMessage);
+
     // Make track available globally so CTAs can call it
     (window as any).trackEvent = track;
 
@@ -128,6 +136,8 @@ export default function Tracker({ variantId }: { variantId: string }) {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener("message", handleMessage);
+      clearInterval(flushInterval);
       delete (window as any).trackEvent;
     };
   }, [variantId]);

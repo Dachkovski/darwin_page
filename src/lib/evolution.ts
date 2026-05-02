@@ -63,12 +63,25 @@ Based on the goal and metrics, provide an observation and hypothesis.`;
   });
 
   // --- EVOLVE PHASE ---
+  let parsedOld = { html: "", css: "", js: "" };
+  try { parsedOld = JSON.parse(variant.contentJson); } catch(e){}
+
   const evolvePrompt = `Goal: ${config.optimizationGoal}
-Old Content:\n${variant.contentJson}
+
 Observation: ${observation}
 Hypothesis: ${hypothesis}
-Generate NEW JSON content strictly matching the previous schema that solves the hypothesis.
-CRITICAL ENGINE RULE: You MUST NOT output any HTML tags (like <button>, <a>, <strong>, etc.) inside the JSON values. Return pure plain text only!`;
+
+You are an autonomous software engineer. Your task is to rewrite the application to fulfill the hypothesis and maximize user interaction.
+You have access to Tailwind CSS classes in your HTML. Do NOT use markdown.
+To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name')\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
+
+Return STRICTLY a JSON object with this exact schema:
+{
+  "html": "raw html code for the body",
+  "css": "raw css styles if needed, else empty string",
+  "js": "vanilla javascript code without script tags"
+}
+CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   let newContentJson = variant.contentJson;
 
   try {

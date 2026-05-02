@@ -1,24 +1,18 @@
-import LandingPageRenderer, { PageVariant } from "@/components/LandingPageRenderer";
+import AppSandboxRenderer, { AppVariant } from "@/components/AppSandboxRenderer";
 import EvolutionState from "@/components/EvolutionState";
 import Tracker from "@/components/Tracker";
 import { db } from "@/db";
 import { variants } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-// Fallback initial variant in case DB is completely empty or errors
-const FALLBACK_VARIANT: PageVariant = {
-  id: "fallback_001",
-  hero_headline: "This website improves itself.",
-  hero_subheadline: "A minimal self-optimizing content system.",
-  primary_cta_text: "See the feedback loop",
-  secondary_cta_text: "Read the docs",
-  value_propositions: ["System is starting up..."],
-  footer_text: "DarwinPage - Booting..."
+const FALLBACK_APP: AppVariant = {
+  html: "<div style='color:white;text-align:center;margin-top:20%'><h1>App Engine Booting...</h1></div>",
+  css: "body { background: black; }",
+  js: ""
 };
 
 export default async function Home() {
-  // Fetch the active variant from the database
-  let activeVariantData: PageVariant = FALLBACK_VARIANT;
+  let activeVariantData: AppVariant = FALLBACK_APP;
   let generation = 1;
   let score = 0;
   let lastMutation = "Genesis";
@@ -33,12 +27,9 @@ export default async function Home() {
 
     if (activeVariants.length > 0) {
       const v = activeVariants[0];
-      activeVariantData = JSON.parse(v.contentJson) as PageVariant;
+      activeVariantData = JSON.parse(v.contentJson) as AppVariant;
       generation = v.generation;
       lastMutation = v.mutationReason || "Unknown";
-      
-      // We would fetch the current score from MetricSnapshot here eventually,
-      // but for now we default to 0.00 as we just started
     }
   } catch (error) {
     console.error("Error fetching variant:", error);
@@ -46,11 +37,11 @@ export default async function Home() {
 
   return (
     <>
-      <Tracker variantId={activeVariantData.id} />
-      <LandingPageRenderer variant={activeVariantData} />
+      <Tracker variantId={activeVariants?.length > 0 ? activeVariants[0].id : "fallback"} />
+      <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 
         generation={generation}
-        variantId={activeVariantData.id}
+        variantId={activeVariants?.length > 0 ? activeVariants[0].id : "fallback"}
         score={score}
         lastMutation={lastMutation}
       />

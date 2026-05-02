@@ -108,10 +108,14 @@ Based on the goal and metrics, provide an observation and hypothesis.`;
   
   try {
     const llmResponse = await callLLM(userPrompt, `${config.llmSystemPrompt} Reply in strict JSON: {"observation":"", "hypothesis":""}`);
-    const parsed = JSON.parse(llmResponse.replace(/```json/g, '').replace(/```/g, ''));
+    let jsonStr = llmResponse.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+    const parsed = JSON.parse(jsonStr);
     observation = parsed.observation || observation;
     hypothesis = parsed.hypothesis || hypothesis;
-  } catch (e) {}
+  } catch (e) {
+    console.error("Analysis LLM failed:", e);
+  }
 
   await db.insert(researchLogs).values({
     id: crypto.randomUUID(),
@@ -150,7 +154,10 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
 
   try {
     const llmResponse = await callLLM(evolvePrompt, `${config.llmSystemPrompt} Return valid JSON only.`);
-    let jsonStr = llmResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    let jsonStr = llmResponse.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    // Fix invalid escape characters often generated in JS regexes (e.g. \s -> \\s)
+    jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+    
     JSON.parse(jsonStr); // validate
     newContentJson = jsonStr;
   } catch (e) {

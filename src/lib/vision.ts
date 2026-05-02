@@ -44,7 +44,7 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
       return;
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     const insight = data.choices[0].message.content.trim();
 
     // Save images to disk

@@ -39,9 +39,17 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     let startImage: string | null = null;
     let latestImage: string | null = null;
 
-    const flushQueue = () => {
-      if (eventQueue.length === 0) return;
-      const payload = JSON.stringify({ events: eventQueue, startImage, latestImage });
+    const flushQueue = (isExit = false) => {
+      if (eventQueue.length === 0 && !isExit) return;
+      
+      const payloadObj: any = { events: eventQueue };
+      if (isExit) {
+        payloadObj.startImage = startImage;
+        payloadObj.latestImage = latestImage;
+        payloadObj.isExit = true;
+      }
+      
+      const payload = JSON.stringify(payloadObj);
       
       fetch("/api/events", {
         method: "POST",
@@ -51,7 +59,7 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       eventQueue = [];
     };
 
-    const track = (eventType: string, metadata: Record<string, any> = {}) => {
+    const track = (eventType: string, metadata: Record<string, any> = {}, isExit = false) => {
       eventQueue.push({
         visitorId: finalVisitorId,
         sessionId,
@@ -61,9 +69,10 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
         timestamp: new Date().toISOString()
       });
 
-      // Force flush if it's a critical exit event
-      if (eventType === 'time_on_page' || eventType === 'bounce') {
-        flushQueue();
+      if (isExit) {
+        flushQueue(true);
+      } else if (eventType === 'bounce') {
+        flushQueue(false);
       }
     };
 
@@ -100,11 +109,11 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
         const timeSinceLastActive = Math.round((Date.now() - lastActiveStartTime) / 1000);
         accumulatedActiveTime += timeSinceLastActive;
         
-        track("time_on_page", { seconds: accumulatedActiveTime });
-        
         // Simple bounce definition: left within 10 seconds of active time without scrolling much
         if (accumulatedActiveTime < 10 && !trackedScrolls.current.has(25)) {
-          track("bounce");
+          track("bounce", {}, true);
+        } else {
+          track("time_on_page", { seconds: accumulatedActiveTime }, true);
         }
       } else {
         // User came back to the tab, restart the active timer

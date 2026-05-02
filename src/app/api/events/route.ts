@@ -41,11 +41,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Fire and forget vision analysis if we got images on a bounce
-    const bounceEvent = body.events.find((e: any) => e.eventType === 'bounce');
-    if (bounceEvent && (body.startImage || body.latestImage)) {
+    // Fire and forget vision analysis if this payload is from an exit event
+    if (body.isExit && (body.startImage || body.latestImage) && body.events.length > 0) {
+      const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
       import('@/lib/vision').then(({ analyzeVisuals }) => {
-        analyzeVisuals(body.startImage, body.latestImage, bounceEvent.variantId, bounceEvent.visitorId, bounceEvent.sessionId, process.env)
+        analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, process.env)
           .catch(e => console.error('Vision API error:', e));
       });
     }

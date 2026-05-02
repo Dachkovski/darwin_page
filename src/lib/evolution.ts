@@ -161,7 +161,8 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   }
 
   const newGen = variant.generation + 1;
-  const newVariantId = `hero_${String.fromCharCode(97 + (newGen % 26))}_${String(newGen).padStart(3, '0')}`;
+  const uniqueHash = crypto.randomBytes(4).toString('hex');
+  const newVariantId = `hero_${String.fromCharCode(97 + (newGen % 26))}_${String(newGen).padStart(3, '0')}_${uniqueHash}`;
   
   const parsedContent = JSON.parse(newContentJson);
   parsedContent.id = newVariantId;

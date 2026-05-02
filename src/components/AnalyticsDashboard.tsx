@@ -3,10 +3,7 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, MousePointerClick, Users, TrendingUp, ChevronDown } from 'lucide-react';
-
-import dynamic from 'next/dynamic';
-
-const EvolutionChartDynamic = dynamic(() => import('./EvolutionChart'), { ssr: false, loading: () => <div className="w-full h-full animate-pulse bg-neutral-800/20 rounded-lg flex items-center justify-center text-neutral-600">Loading chart safely...</div> });
+import EvolutionChart from './EvolutionChart';
 
 export type ChartDataPoint = {
   generation: number;
@@ -21,6 +18,11 @@ export type ChartDataPoint = {
 
 export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] }) {
   const [activeMetric, setActiveMetric] = useState<keyof ChartDataPoint>('score');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Sort data by generation ascending for the chart
   const chartData = [...data].sort((a, b) => a.generation - b.generation);
@@ -94,9 +96,15 @@ export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] })
           </div>
         </div>
 
-        <div className="w-full h-[350px] min-h-[350px] min-w-0">
+        <div suppressHydrationWarning className="w-full h-[350px] min-h-[350px] min-w-0">
           {chartData.length > 0 ? (
-            <EvolutionChartDynamic chartData={chartData} activeMetric={activeMetric} activeColor={activeColor} />
+            mounted ? (
+              <EvolutionChart chartData={chartData} activeMetric={activeMetric} activeColor={activeColor} />
+            ) : (
+              <div className="w-full h-full animate-pulse bg-neutral-800/20 rounded-lg flex items-center justify-center text-neutral-600">
+                Loading chart...
+              </div>
+            )
           ) : (
             <div className="w-full h-full flex items-center justify-center text-neutral-600 border border-dashed border-neutral-800 rounded-lg">
               No evolution data available yet.

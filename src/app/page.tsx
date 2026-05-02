@@ -17,8 +17,8 @@ export default async function Home() {
   let generation = 1;
   let score = 0;
   let lastMutation = "Genesis";
-  
-  const visitorId = cookies().get('visitor_id')?.value;
+  const cookieStore = await cookies();
+  const visitorId = cookieStore.get('visitor_id')?.value;
 
   try {
     let activeVariantsList = [];

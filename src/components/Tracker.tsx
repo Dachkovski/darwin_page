@@ -10,15 +10,16 @@ function getOrGenerateId(key: string, storage: Storage): string {
   }
   return id;
 }
-export default function Tracker({ variantId }: { variantId: string }) {
+export default function Tracker({ variantId, visitorId }: { variantId: string, visitorId?: string }) {
   const trackedScrolls = useRef(new Set<number>());
   const startTime = useRef(Date.now());
 
   useEffect(() => {
-    let visitorId = localStorage.getItem("visitor_id");
-    if (!visitorId) {
-      visitorId = crypto.randomUUID();
-      localStorage.setItem("visitor_id", visitorId);
+    // 1. Determine Visitor ID
+    let finalVisitorId = visitorId;
+    if (!finalVisitorId) {
+      finalVisitorId = localStorage.getItem("visitor_id") || crypto.randomUUID();
+      localStorage.setItem("visitor_id", finalVisitorId);
     }
 
     let sessionId = sessionStorage.getItem("session_id");
@@ -41,7 +42,7 @@ export default function Tracker({ variantId }: { variantId: string }) {
 
     const track = (eventType: string, metadata: Record<string, any> = {}) => {
       eventQueue.push({
-        visitorId,
+        visitorId: finalVisitorId,
         sessionId,
         variantId,
         eventType,

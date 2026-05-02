@@ -3,7 +3,13 @@ import type { NextRequest } from 'next/server';
 
 export default function proxy(req: NextRequest) {
   const url = req.nextUrl;
+  let res = NextResponse.next();
   
+  // Assign visitor_id if not present
+  if (!req.cookies.has('visitor_id')) {
+    res.cookies.set('visitor_id', crypto.randomUUID());
+  }
+
   // Protect admin API and login trigger
   if (url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/admin/login')) {
     const basicAuth = req.headers.get('authorization');
@@ -15,7 +21,7 @@ export default function proxy(req: NextRequest) {
         const [user, pwd] = atob(authValue).split(':');
 
         if (pwd === authPassword) {
-          return NextResponse.next();
+          return res;
         }
       }
 
@@ -28,7 +34,7 @@ export default function proxy(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 
 export const variants = sqliteTable('variants', {
   id: text('id').primaryKey(),
+  visitorId: text('visitor_id'),
   generation: integer('generation').notNull(),
   parentVariantId: text('parent_variant_id'),
   status: text('status').notNull().default('draft'), // draft, active, winner, archived, inconclusive

@@ -3,7 +3,8 @@ import EvolutionState from "@/components/EvolutionState";
 import Tracker from "@/components/Tracker";
 import { db } from "@/db";
 import { variants } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, isNull } from "drizzle-orm";
+import { cookies } from "next/headers";
 
 const FALLBACK_APP: AppVariant = {
   html: "<div style='color:white;text-align:center;margin-top:20%'><h1>App Engine Booting...</h1></div>",
@@ -16,14 +17,31 @@ export default async function Home() {
   let generation = 1;
   let score = 0;
   let lastMutation = "Genesis";
+  
+  const visitorId = cookies().get('visitor_id')?.value;
 
   try {
-    const activeVariantsList = await db
-      .select()
-      .from(variants)
-      .where(eq(variants.status, 'active'))
-      .orderBy(desc(variants.generation))
-      .limit(1);
+    let activeVariantsList = [];
+    
+    // First, try to find a personalized variant for this specific user
+    if (visitorId) {
+      activeVariantsList = await db
+        .select()
+        .from(variants)
+        .where(and(eq(variants.status, 'active'), eq(variants.visitorId, visitorId)))
+        .orderBy(desc(variants.generation))
+        .limit(1);
+    }
+
+    // If no personalized variant exists, fall back to the global active variant
+    if (activeVariantsList.length === 0) {
+      activeVariantsList = await db
+        .select()
+        .from(variants)
+        .where(and(eq(variants.status, 'active'), isNull(variants.visitorId)))
+        .orderBy(desc(variants.generation))
+        .limit(1);
+    }
 
     if (activeVariantsList.length > 0) {
       const v = activeVariantsList[0];
@@ -41,7 +59,7 @@ export default async function Home() {
 
   return (
     <>
-      <Tracker variantId={trackingId} />
+      <Tracker variantId={trackingId} visitorId={visitorId} />
       <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 
         generation={generation}

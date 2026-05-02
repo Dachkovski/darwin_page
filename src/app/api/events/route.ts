@@ -35,10 +35,9 @@ export async function POST(req: NextRequest) {
     const configs = await db.select().from(optimizationConfigs).limit(1);
     if (configs.length > 0 && configs[0].autoPromoteEnabled) {
       // Fire and forget the evolution cycle!
-      // In a real CF Worker, you'd use ctx.waitUntil, but for this MVP,
-      // a background promise works locally.
       import('@/lib/evolution').then(({ runEvolutionCycle }) => {
-        runEvolutionCycle(process.env).catch(e => console.error('Autonomous loop error:', e));
+        const visitorId = body.events[0]?.visitorId;
+        runEvolutionCycle(process.env, visitorId).catch(e => console.error('Autonomous loop error:', e));
       });
     }
 

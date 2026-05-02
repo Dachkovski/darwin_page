@@ -179,7 +179,7 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     const pollInterval = setInterval(async () => {
       try {
         const res = await fetch(`/api/version?visitorId=${finalVisitorId}`);
-        const data = await res.json();
+        const data = (await res.json()) as any;
         if (data.latestVariantId && data.latestVariantId !== variantId) {
           window.location.reload();
         }

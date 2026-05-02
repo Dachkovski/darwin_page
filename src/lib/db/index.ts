@@ -11,7 +11,7 @@ export const getDb = (env?: any) => {
   // Try to get from next-on-pages context if no env passed
   try {
     const ctx = getRequestContext();
-    if (ctx.env && ctx.env.D1_DB) return getD1Db(ctx.env);
+    if (ctx.env && (ctx.env as any).D1_DB) return getD1Db(ctx.env);
   } catch(e) {}
   
   throw new Error("D1_DB not available. Please run using 'npx wrangler pages dev'.");

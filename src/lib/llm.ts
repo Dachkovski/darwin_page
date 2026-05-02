@@ -60,7 +60,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
       throw new Error(`LLM API Error: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as any;
     const message = data.choices[0].message;
     messages.push(message);
 

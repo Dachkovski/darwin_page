@@ -152,71 +152,92 @@ export default async function AdminDashboard() {
                     </div>
                   </div>
 
-                  {userVariants.map(variant => {
-                    const vEvents = visitorEvents.filter(e => e.variantId === variant.id);
-                    const visualAnalyses = vEvents.filter(e => e.eventType === 'visual_analysis');
-                    const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click');
-                    
-                    // Find the research log for this generation
-                    const log = logs.find(l => l.generation === variant.generation);
+                  <div className="relative border-l-2 border-neutral-800 ml-3 pl-8 flex flex-col gap-10 mt-4">
+                    {userVariants.map((variant, index) => {
+                      const vEvents = visitorEvents.filter(e => e.variantId === variant.id);
+                      const visualAnalyses = vEvents.filter(e => e.eventType === 'visual_analysis');
+                      const interactionClicks = vEvents.filter(e => e.eventType === 'interaction_click');
+                      
+                      // Find the research log for this generation
+                      const log = logs.find(l => l.generation === variant.generation);
 
-                    return (
-                      <div key={variant.id} className="p-4 border border-neutral-800 rounded-xl bg-black/40 flex flex-col gap-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-sm font-bold text-white mb-1">Variant {variant.id}</div>
-                            <div className="text-xs text-neutral-500">Generation {variant.generation}</div>
+                      return (
+                        <div key={variant.id} className="relative flex flex-col gap-3">
+                          {/* Timeline Dot */}
+                          <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-neutral-900 border-2 border-neutral-600 flex items-center justify-center">
+                             <div className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
                           </div>
-                        </div>
 
-                        {/* AI Thoughts (Research Log + Hypothesis) */}
-                        <div className="flex flex-col gap-2 p-3 bg-blue-950/10 rounded border border-blue-900/30 text-xs">
-                          <span className="text-blue-400 font-semibold block mb-1">🧠 LLM Thoughts & Hypothesis:</span>
-                          {log ? (
-                            <>
-                              <div className="text-neutral-400"><span className="text-neutral-500">Observation:</span> {log.observation}</div>
-                              <div className="text-neutral-300 italic">"{log.hypothesis}"</div>
-                            </>
-                          ) : (
-                            <span className="text-neutral-300 italic">"{variant.hypothesis || 'No specific hypothesis recorded.'}"</span>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-bold text-white tracking-wide">🎨 Design Generation {variant.generation}</span>
+                            <span className="text-[10px] text-neutral-600 font-mono">({variant.id})</span>
+                          </div>
+
+                          {/* AI Thoughts (Why was this built?) */}
+                          <div className="flex gap-3 items-start bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
+                            <div className="text-xl mt-0.5">🧠</div>
+                            <div className="flex flex-col gap-1.5 flex-1">
+                              <span className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">AI Rationale & Plan</span>
+                              {log ? (
+                                <>
+                                  <div className="text-xs text-neutral-400"><span className="text-neutral-500">Observed:</span> {log.observation}</div>
+                                  <div className="text-sm text-blue-300 italic">"{log.hypothesis}"</div>
+                                </>
+                              ) : (
+                                <div className="text-sm text-blue-300 italic">"{variant.hypothesis || 'Initial Baseline Design'}"</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* User Interactions (What did the user do?) */}
+                          {interactionClicks.length > 0 && (
+                            <div className="flex gap-3 items-start bg-neutral-900/50 p-4 rounded-xl border border-neutral-800 mt-2">
+                              <div className="text-xl mt-0.5">🖱️</div>
+                              <div className="flex flex-col gap-1.5 flex-1">
+                                <span className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">User Actions</span>
+                                <ul className="space-y-1">
+                                  {interactionClicks.map(e => {
+                                    try { 
+                                      const meta = JSON.parse(e.metadataJson || '{}');
+                                      return (
+                                        <li key={e.id} className="text-xs text-neutral-400 flex flex-wrap items-center gap-1.5">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-700"></span>
+                                          Clicked <span className="text-white px-1.5 py-0.5 bg-neutral-800 rounded">"{meta.text}"</span>
+                                          {meta.formState && <span className="text-emerald-400">(Typed: {meta.formState})</span>}
+                                          {meta.sceneState && <span className="text-sky-400">[{meta.sceneState}]</span>}
+                                        </li>
+                                      );
+                                    } catch(err){ return null; }
+                                  })}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Visual Insights (How did it look?) */}
+                          {visualAnalyses.length > 0 && (
+                            <div className="flex gap-3 items-start bg-purple-950/20 p-4 rounded-xl border border-purple-900/30 mt-2">
+                              <div className="text-xl mt-0.5">👁️</div>
+                              <div className="flex flex-col gap-1.5 flex-1">
+                                <span className="text-[11px] uppercase tracking-wider text-purple-500 font-bold">Multimodal Screen Context</span>
+                                <ul className="space-y-1">
+                                  {visualAnalyses.map(e => {
+                                    try { 
+                                      return (
+                                        <li key={e.id} className="text-sm text-purple-200 italic leading-snug">
+                                          "{JSON.parse(e.metadataJson || '{}').insight}"
+                                        </li>
+                                      );
+                                    } catch(err){ return null; }
+                                  })}
+                                </ul>
+                              </div>
+                            </div>
                           )}
                         </div>
-
-                        {/* Visual Insights */}
-                        {visualAnalyses.length > 0 && (
-                          <div className="p-3 bg-purple-950/20 rounded border border-purple-900/40 text-xs">
-                            <span className="text-purple-400 font-semibold block mb-2">👁️ Multimodal Visual Insight:</span>
-                            <ul className="list-disc pl-4 space-y-1">
-                              {visualAnalyses.map(e => {
-                                try { return <li key={e.id} className="text-neutral-300 italic">"{JSON.parse(e.metadataJson || '{}').insight}"</li> } catch(err){ return null; }
-                              })}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* User Interactions */}
-                        {interactionClicks.length > 0 && (
-                          <div className="p-3 bg-neutral-900/80 rounded border border-neutral-800 text-xs">
-                            <span className="text-neutral-500 font-semibold block mb-2">User Actions on this variant:</span>
-                            <ul className="list-disc pl-4 space-y-1">
-                              {interactionClicks.map(e => {
-                                try { 
-                                  const meta = JSON.parse(e.metadataJson || '{}');
-                                  return (
-                                    <li key={e.id} className="text-neutral-400">
-                                      Clicked <span className="text-neutral-300">"{meta.text}"</span>
-                                      {meta.formState && <span className="text-emerald-400 ml-1">(Input: {meta.formState})</span>}
-                                      {meta.sceneState && <span className="text-blue-400 ml-1">[Scene: {meta.sceneState}]</span>}
-                                    </li>
-                                  );
-                                } catch(err){ return null; }
-                              })}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}

@@ -24,6 +24,15 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
     ${variant.css || ''}
   </style>
   <script>
+    // Force all WebGL contexts to preserve drawing buffer so screenshots work!
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function() {
+      if (arguments[0] === 'webgl' || arguments[0] === 'webgl2') {
+        arguments[1] = Object.assign({}, arguments[1] || {}, { preserveDrawingBuffer: true });
+      }
+      return originalGetContext.apply(this, arguments);
+    };
+
     // Darwin Telemetry Bridge
     window.darwin = {
       trackEvent: (eventType, metadata = {}) => {

@@ -52,18 +52,24 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
         try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch(err){}
     });
     
-    // COOLDOWN CHECK: Don't evolve if the current variant was created less than 2 minutes ago
+    // COOLDOWN CHECK: Don't evolve if the current variant was created less than 30 seconds ago
     // or if they haven't spent enough time on it yet to justify an evolution.
     const now = Date.now();
     const createdTime = variant.createdAt ? new Date(variant.createdAt).getTime() : 0;
-    if (now - createdTime < 2 * 60 * 1000) {
+    if (now - createdTime < 30 * 1000) {
       return { status: 'skipped', message: 'Personal variant is too new (cooldown active).' };
     }
+
+    // Collect JS errors
+    const jsErrors = allUserEvents.filter(e => e.eventType === 'js_error' && e.variantId === variant.id).map(e => {
+        try { return JSON.parse(e.metadataJson || '{}').error; } catch(err){ return null; }
+    }).filter(Boolean);
 
     userHistoryContext = `\n--- USER JOURNEY CONTEXT ---
 This evolution is HIGHLY PERSONALIZED for a specific user.
 The user has spent a total of ${totalTime} seconds interacting with your previous variants.
 Recently clicked elements (newest first): ${interactions.slice(0, 15).join(', ')}.
+${jsErrors.length > 0 ? `CRITICAL BUG REPORT: Your previous Javascript code threw the following errors: ${jsErrors.slice(0, 5).join(' | ')}. YOU MUST FIX THESE ERRORS IN THIS NEW VERSION!` : ''}
 CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience. Do NOT show them the exact same thing if they already explored it. Build successively on their progress!
 EXTREME PERSONALIZATION REQUIRED: You MUST include a personalized greeting or status message explicitly acknowledging their progress (e.g., "Welcome back! You have explored for ${totalTime} seconds and clicked on X, Y, Z."). Make them feel like the app is alive and watching them.`;
   } else {

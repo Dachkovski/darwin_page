@@ -49,7 +49,9 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
           text: interactiveEl.innerText?.substring(0, 50) || interactiveEl.value || '',
           id: interactiveEl.id || '',
           className: interactiveEl.className || '',
-          formState: inputValues.length > 0 ? inputValues.join(', ') : null
+          formState: inputValues.length > 0 ? inputValues.join(', ') : null,
+          sceneState: window.darwin.sceneState || null,
+          domText: document.body.innerText.replace(/\s+/g, ' ').substring(0, 150).trim()
         });
       }
     });

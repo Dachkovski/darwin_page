@@ -14,6 +14,8 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <style>
     body { margin: 0; padding: 0; overflow-x: hidden; background: #000; }
     /* Hide scrollbars for an app-like feel */

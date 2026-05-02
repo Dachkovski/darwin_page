@@ -33,19 +33,7 @@ async function evolve() {
   // 3. Prompt the LLM to generate the new variant
   console.log(`   🧠 Asking LLM to generate the next generation...`);
   
-  const systemPrompt = `You are the creative engine of an evolutionary website.
-Your task is to take an existing page variant and a hypothesis for improvement, and output a NEW page variant that implements the hypothesis.
-Return ONLY valid JSON matching this structure exactly:
-{
-  "hero_headline": "string",
-  "hero_subheadline": "string",
-  "primary_cta_text": "string",
-  "secondary_cta_text": "string",
-  "value_propositions": ["string", "string", "string"],
-  "footer_text": "string"
-}`;
-
-  const userPrompt = `
+  const evolvePrompt = `
 Current Variant Content:
 ${parentVariant.contentJson}
 
@@ -55,12 +43,25 @@ ${latestLog.observation}
 Hypothesis for Improvement:
 ${latestLog.hypothesis}
 
-Generate the new variant JSON now.`;
+You are an autonomous software engineer. Your task is to rewrite the application to fulfill the hypothesis and maximize user interaction.
+You have FULL CONTROL over the DOM. You can create new input fields, complex interactive widgets, forms, logic, and animations. You are actively encouraged to completely delete, overhaul, or replace any existing elements to try radical new designs.
+You can build entire multi-page experiences (Single Page Applications) by using Javascript to hide/show different containers and manage state. Feel free to build comprehensive tools, quizzes, or multi-step flows.
+You have access to Tailwind CSS classes in your HTML. Do NOT use markdown.
+IMPORTANT CAPABILITY: The window already has \`THREE\` (Three.js r128) and \`gsap\` loaded! You are highly encouraged to build mind-blowing interactive 3D pages, WebGL visualizers, and particle effects to wow the user.
+To track events (your fitness function), you MUST use \`window.darwin.trackEvent('event_name', { any_metadata: 'here' })\` in your JS. (e.g. window.darwin.trackEvent('cta_click')).
+
+Return STRICTLY a JSON object with this exact schema:
+{
+  "html": "raw html code for the body",
+  "css": "raw css styles if needed, else empty string",
+  "js": "vanilla javascript code without script tags"
+}
+CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
 
   let newContentJson = parentVariant.contentJson; // Fallback to same content
 
   try {
-    const llmResponse = await callLLM(userPrompt, systemPrompt);
+    const llmResponse = await callLLM(evolvePrompt, "You are the creative engine. Return valid JSON only.");
     
     // We need to parse out the JSON in case the LLM wrapped it in markdown blocks
     let jsonString = llmResponse;

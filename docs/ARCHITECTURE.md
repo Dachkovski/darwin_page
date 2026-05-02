@@ -17,9 +17,10 @@ The system is conceptually divided into four layers:
    - The LLM creates semantic text insights of what the visual interface actually looked like to the user.
    - User inputs (`formState`) and interaction targets are aggregated into a highly personalized contextual prompt block.
 
-3. **The Evolution Engine (Sentient Loop)**
+3. **The Evolution Engine (Sentient Loop & Search Agent)**
    - The backend reads the user history, metrics, and visual insights.
-   - Instead of picking templates, it uses a massive LLM call (`evolution.ts`) injected with a "Sentient Directive" to completely rewrite the DOM/WebGL from scratch.
+   - Using a recursive tool-calling loop (`llm.ts`), the agent can autonomously trigger a `search_web` function via `duck-duck-scrape` to read current events or docs online.
+   - After fetching knowledge, it uses a massive LLM call (`evolution.ts`) injected with a "Sentient Directive" to completely rewrite the DOM/WebGL from scratch.
    - The `ResearchLog` tracks the AI's analytical thoughts, and `generationPrompt` in the DB stores the exact prompt it received.
 
 4. **The Observers (Admin & Public Insights)**
@@ -45,7 +46,8 @@ graph TD
         
         subgraph "Evolution Engine (lib/evolution.ts)"
             Cron[Cron/Manual Trigger] --> |Calculates Fitness| DB_M[(Metrics DB)]
-            Cron --> |Injects Sentient Prompt| O_API[OpenAI Text Generation]
+            Cron --> |Injects Sentient Prompt| O_API[OpenAI Agent Loop]
+            O_API <--> |DuckDuckGo Web Search| W_API[Internet Knowledge]
             O_API --> |Writes HTML/JS| DB_V
         end
     end

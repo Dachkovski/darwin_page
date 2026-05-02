@@ -17,13 +17,14 @@ Unlike traditional software that relies on pre-built templates, Darwin Engine op
 2. **Sentient Persona:** The LLM is directed to act as an enigmatic digital soul rather than an obedient servant. It doesn't just do what you tell it—it interprets human input through its own artistic lens.
 3. **Multimodal Vision Memory:** The engine takes base64 screenshots of the user's interface when they interact. A vision model (like `gpt-4o-mini`) analyzes what the interface actually looked like and adds these "visual memories" to the AI's permanent log.
 4. **Conversational Feedback:** The UI dynamically spawns text inputs. What users type in those inputs is recorded as `formState` and directly passed to the next LLM generation cycle, creating a slow-motion, interactive conversation.
+5. **Autonomous Internet Search:** The AI is equipped with an agentic loop and a web-search tool. It can autonomously search the internet for live facts, news, or coding inspiration to answer user queries or enhance its 3D mutations in real-time.
 
 ## The Architecture
 
 Built with a modern, focused tech stack:
 - **Next.js (App Router)** for the framework.
 - **Drizzle ORM & SQLite** for blazing fast, local telemetry tracking.
-- **LLM-driven Engine (OpenAI)** for formulating hypotheses and generating code (`src/lib/evolution.ts`).
+- **LLM-driven Agent Loop (OpenAI + duck-duck-scrape)** for formulating hypotheses, searching the web, and generating code (`src/lib/llm.ts`).
 - **Three.js & GSAP** pre-loaded in the sandbox to encourage radical 3D mutations.
 - **Recharts** for live pulse analytics in the Insights Dashboard.
 

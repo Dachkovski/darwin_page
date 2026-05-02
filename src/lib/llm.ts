@@ -34,7 +34,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
     finalSystemPrompt = activeConfig.llmSystemPrompt;
   }
 
-  const messages = [
+  const messages: any[] = [
     { role: "system", content: finalSystemPrompt },
     { role: "user", content: prompt }
   ];

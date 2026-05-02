@@ -13,7 +13,7 @@ The system is conceptually divided into four layers:
    - WebGL contexts are forced to preserve drawing buffers, allowing the system to take silent screenshots of the 3D playground.
 
 2. **The Multimodal Perception Layer (Vision & Context)**
-   - When users interact or bounce, screenshots are processed by `vision.ts` (`gpt-4o`).
+   - When users interact or bounce, screenshots are processed by `vision.ts` (`gpt-5.5`).
    - The LLM creates semantic text insights of what the visual interface actually looked like to the user.
    - User inputs (`formState`) and interaction targets are aggregated into a highly personalized contextual prompt block.
 
@@ -42,7 +42,7 @@ graph TD
         Admin[Neural Link: /admin] --> |Analyzes| DB_V
         
         A_E --> |Stores Events| DB_EV[(Events DB)]
-        A_E --> |Vision Extraction| V_API[OpenAI GPT-4o Vision]
+        A_E --> |Vision Extraction| V_API[OpenAI GPT-5.5 Vision]
         
         subgraph "Evolution Engine (lib/evolution.ts)"
             Cron[Cron/Manual Trigger] --> |Calculates Fitness| DB_M[(Metrics DB)]

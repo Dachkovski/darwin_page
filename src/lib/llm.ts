@@ -3,7 +3,7 @@ import { search } from 'duck-duck-scrape';
 export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher."): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   const baseUrl = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-  const model = process.env.OPENAI_MODEL || "gpt-4o";
+  const model = process.env.OPENAI_MODEL || "gpt-5.5";
 
   if (!apiKey) {
     console.warn("⚠️ OPENAI_API_KEY is not set. Using a mock LLM response for local testing.");

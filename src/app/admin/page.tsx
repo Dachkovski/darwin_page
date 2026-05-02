@@ -55,8 +55,8 @@ export default async function AdminDashboard() {
         if (meta.seconds) totalSeconds += meta.seconds;
       } catch (err) {}
     });
-    const avgTimeOnPage = timeEvents.length > 0 ? Math.min(totalSeconds / timeEvents.length, 300) : 0;
-    const normalizedTimeOnPage = avgTimeOnPage / 300;
+    const avgTimeOnPage = timeEvents.length > 0 ? Math.min((totalSeconds || 0) / timeEvents.length, 300) : 0;
+    const normalizedTimeOnPage = (avgTimeOnPage || 0) / 300;
 
     const ctaClickRate = views > 0 ? (ctaClicks / views) * 100 : 0;
     const bounceRate = views > 0 ? (bounces / views) * 100 : 0;
@@ -71,6 +71,9 @@ export default async function AdminDashboard() {
         score = ((ctaClickRate/100) * (w.cta_click_rate || 0)) + ((bounceRate/100) * (w.bounce_rate || 0)) + (normalizedTimeOnPage * (w.time_on_page || 0));
       } catch (e) {}
     }
+    
+    // Ensure all values are strictly numbers, fallback to 0 to prevent JSON serialization turning NaN into null
+    score = Number.isNaN(score) ? 0 : score;
 
     return {
       generation: variant.generation,

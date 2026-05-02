@@ -67,10 +67,10 @@ export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] })
     <div className="flex flex-col gap-6 mb-8">
       {/* Top Level KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {renderKpi("Latest Score", latestGen ? latestGen.score.toFixed(2) : "0", previousGen?.score || null, latestGen?.score || null)}
-        {renderKpi("Latest CTA Rate", latestGen ? `${latestGen.ctaClickRate.toFixed(1)}%` : "0%", previousGen?.ctaClickRate || null, latestGen?.ctaClickRate || null)}
-        {renderKpi("Interaction Rate", latestGen ? `${latestGen.interactionRate.toFixed(1)}%` : "0%", previousGen?.interactionRate || null, latestGen?.interactionRate || null)}
-        {renderKpi("Bounce Rate", latestGen ? `${latestGen.bounceRate.toFixed(1)}%` : "0%", previousGen?.bounceRate || null, latestGen?.bounceRate || null, false)}
+        {renderKpi("Latest Score", latestGen?.score != null ? latestGen.score.toFixed(2) : "0", previousGen?.score || null, latestGen?.score || null)}
+        {renderKpi("Latest CTA Rate", latestGen?.ctaClickRate != null ? `${latestGen.ctaClickRate.toFixed(1)}%` : "0%", previousGen?.ctaClickRate || null, latestGen?.ctaClickRate || null)}
+        {renderKpi("Interaction Rate", latestGen?.interactionRate != null ? `${latestGen.interactionRate.toFixed(1)}%` : "0%", previousGen?.interactionRate || null, latestGen?.interactionRate || null)}
+        {renderKpi("Bounce Rate", latestGen?.bounceRate != null ? `${latestGen.bounceRate.toFixed(1)}%` : "0%", previousGen?.bounceRate || null, latestGen?.bounceRate || null, false)}
       </div>
 
       {/* Main Chart Area */}

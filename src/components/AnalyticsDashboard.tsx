@@ -125,8 +125,8 @@ export default function AnalyticsDashboard({ data }: { data: ChartDataPoint[] })
                     contentStyle={{ backgroundColor: '#171717', borderColor: '#333', borderRadius: '8px', color: '#fff' }}
                     itemStyle={{ color: activeColor, fontWeight: 'bold' }}
                     labelStyle={{ color: '#888', marginBottom: '4px' }}
-                    formatter={(value: number) => {
-                      const safeVal = value || 0;
+                    formatter={(value: any) => {
+                      const safeVal = Number(value) || 0;
                       if (['score', 'visitors'].includes(activeMetric)) return [safeVal.toFixed(2), ''];
                       return [`${safeVal.toFixed(2)}%`, ''];
                     }}

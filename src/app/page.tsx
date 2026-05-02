@@ -21,7 +21,7 @@ export default async function Home() {
   const visitorId = cookieStore.get('visitor_id')?.value;
 
   try {
-    let activeVariantsList = [];
+    let activeVariantsList: any[] = [];
     
     // First, try to find a personalized variant for this specific user
     if (visitorId) {

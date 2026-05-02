@@ -8,6 +8,8 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { Lock, Unlock } from "lucide-react";
 
+import TimelineNode from "@/components/TimelineNode";
+
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
@@ -162,17 +164,12 @@ export default async function AdminDashboard() {
                       const log = logs.find(l => l.generation === variant.generation);
 
                       return (
-                        <div key={variant.id} className="relative flex flex-col gap-3">
-                          {/* Timeline Dot */}
-                          <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-neutral-900 border-2 border-neutral-600 flex items-center justify-center">
-                             <div className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
-                          </div>
-
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold text-white tracking-wide">🎨 Design Generation {variant.generation}</span>
-                            <span className="text-[10px] text-neutral-600 font-mono">({variant.id})</span>
-                          </div>
-
+                        <TimelineNode 
+                          key={variant.id}
+                          title={`🎨 Design Generation ${variant.generation}`}
+                          subtitle={variant.id}
+                          defaultOpen={index === userVariants.length - 1} // Open latest by default
+                        >
                           {/* AI Thoughts (Why was this built?) */}
                           <div className="flex gap-3 items-start bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
                             <div className="text-xl mt-0.5">🧠</div>
@@ -234,7 +231,7 @@ export default async function AdminDashboard() {
                               </div>
                             </div>
                           )}
-                        </div>
+                        </TimelineNode>
                       );
                     })}
                   </div>

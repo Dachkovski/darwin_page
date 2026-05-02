@@ -33,6 +33,19 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
       window.darwin.trackEvent('js_error', { error: msg, line: lineNo });
       return false;
     };
+    // Global click tracker for the iframe
+    document.addEventListener('click', function(e) {
+      const target = e.target;
+      const interactiveEl = target.closest('button, a, input, select, [role="button"]');
+      if (interactiveEl) {
+        window.darwin.trackEvent('interaction_click', {
+          tag: interactiveEl.tagName.toLowerCase(),
+          text: interactiveEl.innerText?.substring(0, 50) || interactiveEl.value || '',
+          id: interactiveEl.id || '',
+          className: interactiveEl.className || ''
+        });
+      }
+    });
   </script>
 </head>
 <body>
@@ -55,7 +68,7 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
     <iframe 
       srcDoc={srcDoc}
       className="w-full h-[100dvh] border-none block"
-      sandbox="allow-scripts allow-same-origin allow-popups"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-modals"
       title="Darwin Application Sandbox"
     />
   );

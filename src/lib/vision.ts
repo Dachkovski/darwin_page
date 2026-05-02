@@ -36,7 +36,7 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: 150
+        max_completion_tokens: 150
       })
     });
 

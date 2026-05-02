@@ -50,7 +50,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
         messages,
         tools,
         tool_choice: "auto",
-        temperature: 0.7,
+        temperature: 1,
         response_format: { type: "json_object" }
       })
     });

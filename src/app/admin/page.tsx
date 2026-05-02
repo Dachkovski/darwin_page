@@ -138,7 +138,9 @@ export default async function AdminDashboard() {
             {listVariants.map((variant) => {
               const vEvents = eventCounts.filter(e => e.variantId === variant.id);
               const views = vEvents.find(e => e.eventType === 'page_view')?.count || 0;
-              const clicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
+              const ctaClicks = vEvents.find(e => e.eventType === 'cta_click')?.count || 0;
+              const interactionClicks = vEvents.find(e => e.eventType === 'interaction_click')?.count || 0;
+              const totalInteractions = ctaClicks + interactionClicks;
 
               return (
                 <div key={variant.id} className="p-5 border border-neutral-800 rounded-xl bg-neutral-900/50 flex flex-col gap-4">
@@ -158,7 +160,7 @@ export default async function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-neutral-500">Live Metrics (Raw)</div>
-                      <div className="text-sm text-white">{views} Views • {clicks} CTA Clicks</div>
+                      <div className="text-sm text-white">{views} Views • {totalInteractions} Interactions</div>
                     </div>
                   </div>
                   

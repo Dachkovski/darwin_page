@@ -100,9 +100,14 @@ Das Adapter-Pattern in `src/lib/db/index.ts` merkt automatisch, ob es lokal läu
 
 ## Kostenlimitierung & Batching (Architektur-Notizen)
 
-**Event Batching:**
-Wir haben den `Tracker.tsx` so umgeschrieben, dass Tracking-Events nicht mehr sofort gesendet werden (was Tausende kleine Requests erzeugt), sondern in einer **Queue (Queueing)** gesammelt und nur alle 5 Sekunden (bzw. beim Verlassen der Seite via `navigator.sendBeacon`) abgesetzt werden. 
-*Vorteil:* Reduziert die D1 Write-Operations massiv!
+**Event Batching & Keepalive Telemetry:**
+Wir haben den `Tracker.tsx` so umgeschrieben, dass Tracking-Events nicht mehr sofort gesendet werden (was Tausende kleine Requests erzeugt), sondern in einer **Queue (Queueing)** gesammelt und nur alle 5 Sekunden abgesetzt werden.
+Beim Verlassen der Seite (Exit Event) wird der Request mit `keepalive: true` abgesetzt. Die an OpenAI gesendeten Screenshots werden hierbei on-the-fly auf 30% skaliert und komprimiert, um das strenge 64KB `keepalive`-Limit von modernen Browsern zu unterbieten und eine Zustellung zu garantieren, selbst wenn der Tab geschlossen wird.
+*Vorteil:* Reduziert die D1 Write-Operations massiv und sorgt für 100% verlässliche Exit-Events!
+
+**Edge Background Execution (`after`):**
+Da Serverless Edge-Umgebungen wie Cloudflare den Prozess sofort töten, wenn der Client die Verbindung trennt, nutzen wir das native `after()` Feature von Next.js.
+Dadurch kann die komplexe LLM-Auswertung (Evolution Cycle & Visual Analysis) sicher im Hintergrund auf der Edge zu Ende laufen, während der User längst einen anderen Tab geöffnet hat.
 
 **Wann auf Paid wechseln?**
 Der Free-Tier reicht locker für Seiten bis zu ~20.000 Besuchern pro Monat (abhängig von der Klick-Freudigkeit). Wenn du das Projekt skalierst und über 100.000 Writes pro Tag kommst, kostet der Cloudflare Workers Paid Plan 5$/Monat und bietet 50 Millionen Writes! Ein absoluter No-Brainer für diese Architektur.

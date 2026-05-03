@@ -37,6 +37,9 @@ Built with a modern, focused tech stack:
 - `/` : **The Sandbox.** This is the active experimental zone where the user interacts with the current evolutionary generation of the AI.
 - `/insights` : **The Human Mirror.** A public, voyeuristic dashboard showing aggregated statistics, "Whispers to the Machine" (anonymized user inputs), and the Visual Memories gallery of AI-generated UI states.
 - `/admin` : **The Neural Link.** A protected dashboard to observe the AI's inner thoughts, research logs, hypotheses, and user journey timelines.
+  - **Security:** Protected by cookie-based authentication (`ADMIN_PASSWORD`).
+  - **Privacy:** Unauthenticated visitors only see their *own* isolated telemetry and visual journey, acting as a personal dashboard.
+  - **Configuration:** Allows admins to toggle the autonomous loop, adjust BYOK (Bring Your Own Key) trial limits, and tweak fitness function weights in real-time.
 
 ## Local setup
 

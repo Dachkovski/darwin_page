@@ -43,12 +43,19 @@ export default async function AdminDashboard() {
   let logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
 
   // If not an admin, restrict the data to ONLY this user's session
-  if (!isAdmin && currentVisitorId) {
-    allEvents = allEvents.filter(e => e.visitorId === currentVisitorId);
-    const userVariantIds = Array.from(new Set(allEvents.map(e => e.variantId)));
-    allVariants = allVariants.filter(v => userVariantIds.includes(v.id) || v.id === 'hero_a_001');
-    const userVariantGenerations = Array.from(new Set(allVariants.map(v => v.generation)));
-    logs = logs.filter(l => userVariantGenerations.includes(l.generation));
+  if (!isAdmin) {
+    if (currentVisitorId) {
+      allEvents = allEvents.filter(e => e.visitorId === currentVisitorId);
+      const userVariantIds = Array.from(new Set(allEvents.map(e => e.variantId)));
+      allVariants = allVariants.filter(v => userVariantIds.includes(v.id) || v.id === 'hero_a_001');
+      const userVariantGenerations = Array.from(new Set(allVariants.map(v => v.generation)));
+      logs = logs.filter(l => userVariantGenerations.includes(l.generation));
+    } else {
+      // If they have no cookie and aren't an admin, they see nothing!
+      allEvents = [];
+      allVariants = allVariants.filter(v => v.id === 'hero_a_001');
+      logs = [];
+    }
   }
 
   const config = configs[0];

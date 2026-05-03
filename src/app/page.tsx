@@ -14,6 +14,8 @@ const FALLBACK_APP: AppVariant = {
   js: ""
 };
 
+import { Info } from "lucide-react";
+
 export default async function Home() {
   let activeVariantData: AppVariant = FALLBACK_APP;
   let generation = 1;
@@ -82,6 +84,25 @@ export default async function Home() {
 
   return (
     <>
+      {/* AI Sandbox Info Bubble */}
+      <div className="fixed top-4 left-4 z-[9999] group">
+        <div className="w-10 h-10 rounded-full bg-emerald-600/80 backdrop-blur text-white flex items-center justify-center cursor-help shadow-lg border border-emerald-400/50 hover:bg-emerald-500 transition-colors">
+          <Info size={20} />
+        </div>
+        <div className="absolute top-12 left-0 w-72 p-5 bg-black/90 backdrop-blur-md border border-neutral-800 rounded-2xl text-xs text-neutral-300 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none shadow-2xl scale-95 group-hover:scale-100 origin-top-left">
+          <h3 className="text-white font-bold mb-2 text-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Autonomous AI Sandbox
+          </h3>
+          <p className="mb-2 leading-relaxed">
+            You are experiencing a webpage that is writing its own code. There are no human developers here.
+          </p>
+          <p className="leading-relaxed">
+            An AI agent is continuously monitoring your interactions (clicks, scroll depth) and visual feedback. It uses this data to iteratively mutate the HTML, CSS, and JS in real-time to optimize your experience.
+          </p>
+        </div>
+      </div>
+
       {/* Unalterable Fixed Badges */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
         <a href="https://github.com/Dachkovski/darwin_page" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-neutral-900/80 backdrop-blur border border-neutral-700 rounded-full text-xs font-mono text-white flex items-center gap-2 hover:bg-neutral-800 transition-colors shadow-lg">

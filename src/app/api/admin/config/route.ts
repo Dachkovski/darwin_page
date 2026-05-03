@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
       id: "default",
       autoPromoteEnabled: body.autoPromoteEnabled,
       minVisitorsPerVariant: body.minVisitorsPerVariant,
+      maxFreeGenerations: body.maxFreeGenerations !== undefined ? body.maxFreeGenerations : 3,
       llmSystemPrompt: body.llmSystemPrompt,
       optimizationGoal: body.optimizationGoal,
       activeMetricName: body.activeMetricName || 'default_score',

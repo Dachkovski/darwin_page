@@ -41,19 +41,21 @@ export async function POST(req: NextRequest) {
       personalVariantCount = pvResult.length;
     }
 
+    // Check if autonomous evolution is enabled and get BYOK threshold
+    const configs = await db.select().from(optimizationConfigs).limit(1);
+    const maxFreeGenerations = configs.length > 0 ? configs[0].maxFreeGenerations : 3;
+
     // Extract BYOK key from cookies
     const userApiKey = req.cookies.get('openai_api_key')?.value;
     const dynamicEnv = { ...process.env };
     
     if (userApiKey) {
       dynamicEnv.OPENAI_API_KEY = userApiKey;
-    } else if (personalVariantCount >= 3) {
-      // Enforce BYOK after 3 personal evolutions
+    } else if (personalVariantCount >= maxFreeGenerations) {
+      // Enforce BYOK after maxFreeGenerations
       delete dynamicEnv.OPENAI_API_KEY;
     }
 
-    // Check if autonomous evolution is enabled
-    const configs = await db.select().from(optimizationConfigs).limit(1);
     if (configs.length > 0 && configs[0].autoPromoteEnabled) {
       // Fire and forget the evolution cycle!
       import('@/lib/evolution').then(({ runEvolutionCycle }) => {

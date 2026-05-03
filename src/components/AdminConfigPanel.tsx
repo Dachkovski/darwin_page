@@ -27,6 +27,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
   const [config, setConfig] = useState({
     autoPromoteEnabled: initialConfig?.autoPromoteEnabled ?? false,
     minVisitorsPerVariant: initialConfig?.minVisitorsPerVariant ?? 10,
+    maxFreeGenerations: initialConfig?.maxFreeGenerations ?? 3,
     llmSystemPrompt: initialConfig?.llmSystemPrompt || "You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.",
     optimizationGoal: initialConfig?.optimizationGoal || PRESET_METRICS[0].goal,
     activeMetricName: resolvedMetricName,
@@ -40,6 +41,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
         ...prev,
         autoPromoteEnabled: initialConfig.autoPromoteEnabled,
         minVisitorsPerVariant: initialConfig.minVisitorsPerVariant,
+        maxFreeGenerations: initialConfig.maxFreeGenerations,
         llmSystemPrompt: initialConfig.llmSystemPrompt,
         optimizationGoal: initialConfig.optimizationGoal,
         activeMetricName: initialConfig.activeMetricName,
@@ -94,6 +96,17 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
             onChange={e => setConfig({...config, minVisitorsPerVariant: parseInt(e.target.value) || 10})}
             className="w-full bg-black/50 border-neutral-800 text-white rounded-lg p-2 border focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-neutral-400 mb-1">Free Generations per Visitor (BYOK Threshold)</label>
+          <input 
+            type="number" 
+            value={config.maxFreeGenerations} 
+            onChange={e => setConfig({...config, maxFreeGenerations: parseInt(e.target.value) || 3})}
+            className="w-full bg-black/50 border-neutral-800 text-white rounded-lg p-2 border focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+          />
+          <p className="text-xs text-neutral-500 mt-1">Number of free mutations a visitor gets using the server API key before they must provide their own OpenAI key.</p>
         </div>
 
         <div>

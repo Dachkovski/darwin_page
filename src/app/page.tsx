@@ -67,10 +67,12 @@ export default async function Home() {
   const trackingId = (activeVariantData as any).id || "fallback";
 
   let activeMetricName = "Unknown Metric";
+  let maxFreeGenerations = 3;
   try {
     const configs = await db.select().from(optimizationConfigs).limit(1);
-    if (configs.length > 0 && configs[0].activeMetricName) {
-      activeMetricName = configs[0].activeMetricName;
+    if (configs.length > 0) {
+      if (configs[0].activeMetricName) activeMetricName = configs[0].activeMetricName;
+      maxFreeGenerations = configs[0].maxFreeGenerations;
     }
   } catch(e) {}
 
@@ -89,7 +91,7 @@ export default async function Home() {
         </a>
       </div>
 
-      <ApiKeyModal personalVariantCount={personalVariantCount} />
+      <ApiKeyModal personalVariantCount={personalVariantCount} maxFreeGenerations={maxFreeGenerations} />
       <Tracker variantId={trackingId} visitorId={visitorId} />
       <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 

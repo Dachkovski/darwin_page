@@ -1,0 +1,1 @@
+ALTER TABLE `optimization_configs` ADD `max_free_generations` integer DEFAULT 3 NOT NULL;

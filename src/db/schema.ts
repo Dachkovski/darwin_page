@@ -48,6 +48,7 @@ export const optimizationConfigs = sqliteTable('optimization_configs', {
   minExperimentDays: integer('min_experiment_days').notNull().default(3),
   minScoreImprovement: real('min_score_improvement').notNull().default(0.10),
   autoPromoteEnabled: integer('auto_promote_enabled', { mode: 'boolean' }).notNull().default(false),
+  maxFreeGenerations: integer('max_free_generations').notNull().default(3),
   llmSystemPrompt: text('llm_system_prompt').notNull().default('You are an autonomous UX Researcher. Optimize for maximum user engagement, interactivity, and time spent on page.'),
   optimizationGoal: text('optimization_goal').notNull().default('Maximize the time users spend interacting with the application (Verweildauer). Build engaging, sticky content or interactive tools that keep them hooked.')
 });

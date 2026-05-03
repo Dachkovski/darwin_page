@@ -60,7 +60,9 @@ export async function POST(req: NextRequest) {
       delete dynamicEnv.OPENAI_API_KEY;
     }
 
-    if (configs.length > 0 && configs[0].autoPromoteEnabled) {
+    const isAutoEnabled = configs.length > 0 && configs[0].autoPromoteEnabled;
+
+    if (isAutoEnabled) {
       const visitorId = body.events[0]?.visitorId;
       const { after } = await import('next/server');
       after(async () => {
@@ -75,11 +77,17 @@ export async function POST(req: NextRequest) {
 
     if (body.isExit && (body.startImage || body.latestImage) && body.events.length > 0) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
+      
+      const visionEnv = { ...dynamicEnv };
+      if (!isAutoEnabled) {
+        delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs, but still save images
+      }
+
       const { after } = await import('next/server');
       after(async () => {
         try {
           const { analyzeVisuals } = await import('@/lib/vision');
-          await analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, dynamicEnv);
+          await analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, visionEnv);
         } catch (e) {
           console.error('Vision API error:', e);
         }

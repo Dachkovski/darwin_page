@@ -81,8 +81,11 @@ export default async function Home() {
         <a href="https://github.com/Dachkovski/darwin_page" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-neutral-900/80 backdrop-blur border border-neutral-700 rounded-full text-xs font-mono text-white flex items-center gap-2 hover:bg-neutral-800 transition-colors shadow-lg">
           <span>GitHub Repo</span>
         </a>
+        <a href="/journey" className="px-3 py-1.5 bg-cyan-900/80 backdrop-blur border border-cyan-700 rounded-full text-xs font-mono text-cyan-100 flex items-center gap-2 hover:bg-cyan-800 transition-colors shadow-lg">
+          <span>My Journey</span>
+        </a>
         <a href="/insights" className="px-3 py-1.5 bg-purple-900/80 backdrop-blur border border-purple-700 rounded-full text-xs font-mono text-purple-100 flex items-center gap-2 hover:bg-purple-800 transition-colors shadow-lg">
-          <span>Public Dashboard</span>
+          <span>Public Pulse</span>
         </a>
       </div>
 

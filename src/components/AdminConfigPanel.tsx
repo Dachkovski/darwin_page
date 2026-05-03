@@ -85,8 +85,8 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
             className="w-5 h-5 text-emerald-500 bg-neutral-900 border-neutral-700 rounded focus:ring-emerald-500 focus:ring-offset-neutral-950"
           />
           <div>
-            <span className="font-semibold block text-white">Enable Global Autonomous Loop (Admin Page)</span>
-            <span className="text-sm text-neutral-500">Automatically mutates the global baseline site (e.g. via cron jobs).</span>
+            <span className="font-semibold block text-white">Mutation für Admin (Unlimitiert)</span>
+            <span className="text-sm text-neutral-500">Wenn aktiv, mutiert die Sandbox für dich als eingeloggter Admin unlimitiert (verbraucht API-Tokens).</span>
           </div>
         </label>
 
@@ -98,8 +98,8 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
             className="w-5 h-5 text-cyan-500 bg-neutral-900 border-neutral-700 rounded focus:ring-cyan-500 focus:ring-offset-neutral-950"
           />
           <div>
-            <span className="font-semibold block text-white">Enable Personal User Evolution (Sandbox)</span>
-            <span className="text-sm text-neutral-500">Allows visitors to generate their own personal mutations and activates the Vision API for memory logging.</span>
+            <span className="font-semibold block text-white">Mutation für Besucher (3 Free ➔ BYOK)</span>
+            <span className="text-sm text-neutral-500">Besucher erhalten 3 freie Mutationen. Danach stoppt die Evolution für sie komplett, bis sie einen eigenen API-Key eintragen.</span>
           </div>
         </label>
 

@@ -60,28 +60,34 @@ export async function POST(req: NextRequest) {
       delete dynamicEnv.OPENAI_API_KEY;
     }
 
-    const isPersonalEnabled = configs.length > 0 && configs[0].personalEvolutionEnabled;
+    const isAdminEvolutionEnabled = configs.length > 0 && configs[0].autoPromoteEnabled;
+    const isVisitorEvolutionEnabled = configs.length > 0 && configs[0].personalEvolutionEnabled;
 
-    // Admins do not trigger personal evolutions to save tokens
-    if (isPersonalEnabled && !isAdmin) {
-      const visitorId = body.events[0]?.visitorId;
-      const { after } = await import('next/server');
-      after(async () => {
-        try {
-          const { runEvolutionCycle } = await import('@/lib/evolution');
-          await runEvolutionCycle(dynamicEnv, visitorId);
-        } catch (e) {
-          console.error('Autonomous loop error:', e);
-        }
-      });
+    const shouldEvolve = (isAdmin && isAdminEvolutionEnabled) || (!isAdmin && isVisitorEvolutionEnabled);
+
+    if (shouldEvolve) {
+      // Check if we have a valid key to run evolution
+      const hasKey = !!dynamicEnv.OPENAI_API_KEY;
+      if (hasKey) {
+        const visitorId = body.events[0]?.visitorId;
+        const { after } = await import('next/server');
+        after(async () => {
+          try {
+            const { runEvolutionCycle } = await import('@/lib/evolution');
+            await runEvolutionCycle(dynamicEnv, visitorId);
+          } catch (e) {
+            console.error('Autonomous loop error:', e);
+          }
+        });
+      }
     }
 
     if (body.isExit && (body.startImage || body.latestImage) && body.events.length > 0) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
       
       const visionEnv = { ...dynamicEnv };
-      if (!isPersonalEnabled || isAdmin) {
-        delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs for admins or if disabled
+      if (!shouldEvolve || !dynamicEnv.OPENAI_API_KEY) {
+        delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs if disabled or no key
       }
 
       const { after } = await import('next/server');

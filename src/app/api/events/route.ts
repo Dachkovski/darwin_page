@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
 
     const isPersonalEnabled = configs.length > 0 && configs[0].personalEvolutionEnabled;
 
-    if (isPersonalEnabled) {
+    // Admins do not trigger personal evolutions to save tokens
+    if (isPersonalEnabled && !isAdmin) {
       const visitorId = body.events[0]?.visitorId;
       const { after } = await import('next/server');
       after(async () => {
@@ -79,8 +80,8 @@ export async function POST(req: NextRequest) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
       
       const visionEnv = { ...dynamicEnv };
-      if (!isPersonalEnabled) {
-        delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs, but still save images
+      if (!isPersonalEnabled || isAdmin) {
+        delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs for admins or if disabled
       }
 
       const { after } = await import('next/server');

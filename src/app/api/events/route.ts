@@ -32,15 +32,13 @@ export async function POST(req: NextRequest) {
       await db.insert(events).values(valuesToInsert);
     }
 
-    // Get the variant to check its generation
-    let variantGeneration = 1;
-    const variantId = body.events[0]?.variantId;
-    if (variantId) {
+    // Get the personal variants count for this visitor to enforce BYOK
+    let personalVariantCount = 0;
+    const visitorId = body.events[0]?.visitorId;
+    if (visitorId) {
       const { eq } = await import('drizzle-orm');
-      const vResult = await db.select().from(variants).where(eq(variants.id, variantId)).limit(1);
-      if (vResult.length > 0) {
-        variantGeneration = vResult[0].generation;
-      }
+      const pvResult = await db.select().from(variants).where(eq(variants.visitorId, visitorId));
+      personalVariantCount = pvResult.length;
     }
 
     // Extract BYOK key from cookies
@@ -49,8 +47,8 @@ export async function POST(req: NextRequest) {
     
     if (userApiKey) {
       dynamicEnv.OPENAI_API_KEY = userApiKey;
-    } else if (variantGeneration >= 4) {
-      // Enforce BYOK after 3 generations
+    } else if (personalVariantCount >= 3) {
+      // Enforce BYOK after 3 personal evolutions
       delete dynamicEnv.OPENAI_API_KEY;
     }
 

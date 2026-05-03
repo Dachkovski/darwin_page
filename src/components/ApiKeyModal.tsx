@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import { Key } from "lucide-react";
 
-export default function ApiKeyModal({ generation = 1 }: { generation?: number }) {
+export default function ApiKeyModal({ personalVariantCount = 0 }: { personalVariantCount?: number }) {
   const [isOpen, setIsOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
     const storedKey = document.cookie.split('; ').find(row => row.startsWith('openai_api_key='));
-    if (!storedKey && generation >= 4) {
+    if (!storedKey && personalVariantCount >= 3) {
       setIsOpen(true);
     }
-  }, [generation]);
+  }, [personalVariantCount]);
 
   const handleSave = () => {
     if (apiKey.trim().startsWith("sk-")) {

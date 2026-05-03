@@ -22,17 +22,24 @@ export default async function Home() {
   const cookieStore = await cookies();
   const visitorId = cookieStore.get('visitor_id')?.value;
 
+  let personalVariantCount = 0;
+
   try {
     let activeVariantsList: any[] = [];
     
     // First, try to find a personalized variant for this specific user
     if (visitorId) {
-      activeVariantsList = await db
+      const personalVariants = await db
         .select()
         .from(variants)
-        .where(and(eq(variants.status, 'active'), eq(variants.visitorId, visitorId)))
-        .orderBy(desc(variants.generation))
-        .limit(1);
+        .where(eq(variants.visitorId, visitorId));
+        
+      personalVariantCount = personalVariants.length;
+
+      activeVariantsList = personalVariants
+        .filter(v => v.status === 'active')
+        .sort((a, b) => b.generation - a.generation)
+        .slice(0, 1);
     }
 
     // If no personalized variant exists, fall back to the global active variant
@@ -79,7 +86,7 @@ export default async function Home() {
         </a>
       </div>
 
-      <ApiKeyModal generation={generation} />
+      <ApiKeyModal personalVariantCount={personalVariantCount} />
       <Tracker variantId={trackingId} visitorId={visitorId} />
       <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 

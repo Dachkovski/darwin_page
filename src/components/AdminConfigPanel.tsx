@@ -10,7 +10,7 @@ export const PRESET_METRICS = [
     goal: "Optimize for maximum click-through rate on the primary CTA and encourage users to scroll through the entire page."
   },
   {
-    name: 'Session Duration (Verweildauer)',
+    name: 'Session Duration',
     weights: { cta_click_rate: 0.2, scroll_depth_rate: 0.2, time_on_page: 2.0, bounce_rate: -0.5 },
     goal: "Maximize the time users spend interacting with the application. Build engaging, sticky content or interactive tools that keep them hooked."
   }

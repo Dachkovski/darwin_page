@@ -4,7 +4,7 @@ import { events } from '@/db/schema';
 export async function analyzeVisuals(startImage: string, latestImage: string, variantId: string, visitorId: string, sessionId: string, env: any) {
   const apiKey = env.OPENAI_API_KEY;
   const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-  const model = env.OPENAI_MODEL || "gpt-5.5";
+  const model = env.OPENAI_MODEL || "gpt-4o-mini";
 
   let insight = "Analysis skipped: OPENAI_API_KEY not configured.";
 

@@ -47,21 +47,10 @@ export async function analyzeVisuals(startImage: string, latestImage: string, va
     const data = (await response.json()) as any;
     const insight = data.choices[0].message.content.trim();
 
-    // Save images to disk
-    let startImagePath = null;
-    let latestImagePath = null;
-    
-    try {
-      if (env && env.CF_PAGES) {
-        console.log("Skipping local file save on Cloudflare Pages");
-      } else {
-        // Local file storage disabled for Edge runtime compatibility.
-        // Use R2 or database storage for images in future iterations.
-        console.log("Local filesystem storage disabled.");
-      }
-    } catch(err) {
-      console.error("Failed to save image files to disk:", err);
-    }
+    // For this deployment, we store the scaled down base64 strings directly in the database 
+    // to act as visual memory without needing an external R2 bucket.
+    const startImagePath = startImage || null;
+    const latestImagePath = latestImage || null;
 
     // Store this insight as an event in the DB so it acts as "visual memory"
     const db = getDb(env);

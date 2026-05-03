@@ -45,8 +45,8 @@ export default function AppSandboxRenderer({ variant }: { variant: AppVariant })
     function takeSnapshot(type) {
       try {
         if (window.html2canvas) {
-          window.html2canvas(document.body, { scale: 0.4, logging: false }).then(c => {
-            const img = c.toDataURL('image/jpeg', 0.4);
+          window.html2canvas(document.body, { scale: 0.3, logging: false }).then(c => {
+            const img = c.toDataURL('image/jpeg', 0.3);
             if (type === 'start') startImg = img; else latestImg = img;
             window.parent.postMessage({ type: 'DARWIN_IMAGE', startImage: startImg, latestImage: latestImg }, '*');
           }).catch(e => {});

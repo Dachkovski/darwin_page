@@ -54,7 +54,8 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: payload
+        body: payload,
+        keepalive: isExit
       }).catch(e => console.error("Tracking error:", e));
       eventQueue = [];
     };

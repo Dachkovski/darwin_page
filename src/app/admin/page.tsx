@@ -123,9 +123,9 @@ export default async function AdminDashboard() {
               GitHub Repo
             </a>
             {!isAdmin ? (
-              <Link href="/admin/login" className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm rounded-lg flex items-center gap-2 transition-colors" title="Admin Login">
+              <a href="/admin/login" className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm rounded-lg flex items-center gap-2 transition-colors" title="Admin Login">
                 <Lock className="w-4 h-4" />
-              </Link>
+              </a>
             ) : (
               <div className="flex items-center gap-4">
                 <div className="px-4 py-2 bg-emerald-900/30 text-emerald-400 text-sm rounded-lg flex items-center gap-2 border border-emerald-900/50">

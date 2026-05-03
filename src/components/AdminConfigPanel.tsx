@@ -26,6 +26,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
 
   const [config, setConfig] = useState({
     autoPromoteEnabled: initialConfig?.autoPromoteEnabled ?? false,
+    personalEvolutionEnabled: initialConfig?.personalEvolutionEnabled ?? true,
     minVisitorsPerVariant: initialConfig?.minVisitorsPerVariant ?? 10,
     maxFreeGenerations: initialConfig?.maxFreeGenerations ?? 3,
     llmSystemPrompt: initialConfig?.llmSystemPrompt || "You are DarwinPage UX Researcher. Optimize for maximum user engagement and clarity.",
@@ -40,6 +41,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
       setConfig(prev => ({
         ...prev,
         autoPromoteEnabled: initialConfig.autoPromoteEnabled,
+        personalEvolutionEnabled: initialConfig.personalEvolutionEnabled ?? true,
         minVisitorsPerVariant: initialConfig.minVisitorsPerVariant,
         maxFreeGenerations: initialConfig.maxFreeGenerations,
         llmSystemPrompt: initialConfig.llmSystemPrompt,

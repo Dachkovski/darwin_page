@@ -103,13 +103,18 @@ export default async function AdminDashboard() {
             <p className="text-neutral-500 text-sm">Internal Evolutionary Dashboard</p>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/" className="px-4 py-2 bg-neutral-900 border border-neutral-700 text-neutral-400 hover:text-white rounded-lg transition-colors text-sm flex items-center gap-2">
+              Sandbox
+            </Link>
+            <Link href="/insights" className="px-4 py-2 bg-neutral-900 border border-neutral-700 text-neutral-400 hover:text-white rounded-lg transition-colors text-sm flex items-center gap-2">
+              Public Pulse
+            </Link>
             <a href="https://github.com/Dachkovski/darwin_page" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-neutral-900 border border-neutral-700 text-neutral-400 hover:text-white rounded-lg transition-colors text-sm flex items-center gap-2">
               GitHub Repo
             </a>
             {!isAdmin ? (
-              <Link href="/admin/login" className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm rounded-lg flex items-center gap-2 transition-colors">
+              <Link href="/admin/login" className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm rounded-lg flex items-center gap-2 transition-colors" title="Admin Login">
                 <Lock className="w-4 h-4" />
-                Login to Edit
               </Link>
             ) : (
               <div className="flex items-center gap-4">
@@ -273,7 +278,7 @@ export default async function AdminDashboard() {
                   <span className="text-white">{config?.activeMetricName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Min Visitors:</span>
+                  <span className="text-neutral-500">Event Threshold:</span>
                   <span className="text-white">{config?.minVisitorsPerVariant}</span>
                 </div>
                 <div className="flex justify-between">

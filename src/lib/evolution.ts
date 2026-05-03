@@ -59,12 +59,9 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
       try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch (err) { }
     });
 
-    // COOLDOWN CHECK: Don't evolve if the current variant was created less than 30 seconds ago
-    // or if they haven't spent enough time on it yet to justify an evolution.
-    const now = Date.now();
-    const createdTime = variant.createdAt ? new Date(variant.createdAt).getTime() : 0;
-    if (now - createdTime < 30 * 1000) {
-      return { status: 'skipped', message: 'Personal variant is too new (cooldown active).' };
+    // COOLDOWN CHECK: Don't evolve if the user hasn't generated enough events on this variant
+    if (variantEvents.length < config.minVisitorsPerVariant) {
+      return { status: 'skipped', message: `Not enough events generated. User has ${variantEvents.length} / ${config.minVisitorsPerVariant} required events.` };
     }
 
     // Collect JS errors

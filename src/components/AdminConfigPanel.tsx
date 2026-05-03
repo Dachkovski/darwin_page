@@ -87,7 +87,7 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
         </label>
 
         <div>
-          <label className="block text-sm font-medium text-neutral-400 mb-1">Minimum Visitors before Evolution</label>
+          <label className="block text-sm font-medium text-neutral-400 mb-1">Minimum Interaction Events before Evolution</label>
           <input 
             type="number" 
             value={config.minVisitorsPerVariant} 

@@ -162,6 +162,28 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
     };
     window.addEventListener("click", handleGlobalClick);
 
+    // 5.b Form Input Tracker
+    const handleInputChange = (e: Event) => {
+      const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+      if (!target) return;
+
+      // Skip password fields for security
+      if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'password') return;
+
+      const value = target.value?.substring(0, 100); // Limit length
+      const fieldName = target.name || target.id || target.placeholder || "unknown_field";
+
+      if (value) {
+        track("form_input", {
+          field: fieldName,
+          value: value,
+          tag: target.tagName
+        });
+      }
+    };
+    // Use 'change' event to capture final input when user clicks away or submits, avoiding spamming every keystroke
+    window.addEventListener("change", handleInputChange);
+
     // 6. Listen for iframe sandbox events
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === 'DARWIN_EVENT') {
@@ -191,6 +213,7 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener("change", handleInputChange);
       window.removeEventListener("message", handleMessage);
       clearInterval(flushInterval);
       clearInterval(pollInterval);

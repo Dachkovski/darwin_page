@@ -109,5 +109,10 @@ Beim Verlassen der Seite (Exit Event) wird der Request mit `keepalive: true` abg
 Da Serverless Edge-Umgebungen wie Cloudflare den Prozess sofort töten, wenn der Client die Verbindung trennt, nutzen wir das native `after()` Feature von Next.js.
 Dadurch kann die komplexe LLM-Auswertung (Evolution Cycle & Visual Analysis) sicher im Hintergrund auf der Edge zu Ende laufen, während der User längst einen anderen Tab geöffnet hat.
 
+**Cost Control Toggles (Admin Panel):**
+Die Plattform verfügt über zwei komplett unabhängige Schutzschalter im `/admin` Bereich, um API-Kosten (OpenAI Tokens) hart zu deckeln:
+1. **Mutation für Admin**: Erlaubt es dir als eingeloggtem Admin, die Seite unlimitiert iterieren zu lassen (nutzt den Server-Key). Wenn deaktiviert, verbrauchst du beim eigenen Surfen exakt 0 API-Tokens.
+2. **Mutation für Besucher**: Gewährt jedem öffentlichen Besucher exakt 3 kostenfreie Evolutions-Zyklen. Danach stoppt das System hart (inklusive Vision API). Erst wenn der User seinen eigenen OpenAI-Key per BYOK-Modal einträgt, läuft die Evolution für ihn weiter.
+
 **Wann auf Paid wechseln?**
 Der Free-Tier reicht locker für Seiten bis zu ~20.000 Besuchern pro Monat (abhängig von der Klick-Freudigkeit). Wenn du das Projekt skalierst und über 100.000 Writes pro Tag kommst, kostet der Cloudflare Workers Paid Plan 5$/Monat und bietet 50 Millionen Writes! Ein absoluter No-Brainer für diese Architektur.

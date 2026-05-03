@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
       delete dynamicEnv.OPENAI_API_KEY;
     }
 
-    const isAutoEnabled = configs.length > 0 && configs[0].autoPromoteEnabled;
+    const isPersonalEnabled = configs.length > 0 && configs[0].personalEvolutionEnabled;
 
-    if (isAutoEnabled) {
+    if (isPersonalEnabled) {
       const visitorId = body.events[0]?.visitorId;
       const { after } = await import('next/server');
       after(async () => {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
       
       const visionEnv = { ...dynamicEnv };
-      if (!isAutoEnabled) {
+      if (!isPersonalEnabled) {
         delete visionEnv.OPENAI_API_KEY; // Skip OpenAI call to save API costs, but still save images
       }
 

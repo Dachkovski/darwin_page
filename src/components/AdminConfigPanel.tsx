@@ -83,8 +83,21 @@ export default function AdminConfigPanel({ initialConfig }: { initialConfig: any
             className="w-5 h-5 text-emerald-500 bg-neutral-900 border-neutral-700 rounded focus:ring-emerald-500 focus:ring-offset-neutral-950"
           />
           <div>
-            <span className="font-semibold block text-white">Enable Autonomous Loop</span>
-            <span className="text-sm text-neutral-500">Automatically mutates the page when minimum visitors are reached.</span>
+            <span className="font-semibold block text-white">Enable Global Autonomous Loop (Admin Page)</span>
+            <span className="text-sm text-neutral-500">Automatically mutates the global baseline site (e.g. via cron jobs).</span>
+          </div>
+        </label>
+
+        <label className="flex items-center space-x-3 p-3 bg-black/50 border border-neutral-800 rounded-lg cursor-pointer hover:bg-neutral-900 transition">
+          <input 
+            type="checkbox" 
+            checked={config.personalEvolutionEnabled} 
+            onChange={e => setConfig({...config, personalEvolutionEnabled: e.target.checked})}
+            className="w-5 h-5 text-cyan-500 bg-neutral-900 border-neutral-700 rounded focus:ring-cyan-500 focus:ring-offset-neutral-950"
+          />
+          <div>
+            <span className="font-semibold block text-white">Enable Personal User Evolution (Sandbox)</span>
+            <span className="text-sm text-neutral-500">Allows visitors to generate their own personal mutations and activates the Vision API for memory logging.</span>
           </div>
         </label>
 

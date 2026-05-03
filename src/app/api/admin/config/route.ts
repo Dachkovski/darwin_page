@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     await db.insert(optimizationConfigs).values({
       id: "default",
       autoPromoteEnabled: body.autoPromoteEnabled,
+      personalEvolutionEnabled: body.personalEvolutionEnabled !== undefined ? body.personalEvolutionEnabled : true,
       minVisitorsPerVariant: body.minVisitorsPerVariant,
       maxFreeGenerations: body.maxFreeGenerations !== undefined ? body.maxFreeGenerations : 3,
       llmSystemPrompt: body.llmSystemPrompt,

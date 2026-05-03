@@ -171,7 +171,7 @@ export default function Tracker({ variantId, visitorId }: { variantId: string, v
       if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'password') return;
 
       const value = target.value?.substring(0, 100); // Limit length
-      const fieldName = target.name || target.id || target.placeholder || "unknown_field";
+      const fieldName = target.name || target.id || target.getAttribute('placeholder') || "unknown_field";
 
       if (value) {
         track("form_input", {

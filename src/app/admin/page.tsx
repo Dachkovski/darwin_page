@@ -27,17 +27,29 @@ export default async function AdminDashboard() {
       if (pwd === authPassword) isAdmin = true;
     } catch(e) {}
   }
-  if (!authPassword) isAdmin = true; // Open access if no password configured
+  // If no password is set, we DO NOT default to true anymore, 
+  // because we want the public view to be a personal filtered view!
 
-  const allVariants = await db.select().from(variants).orderBy(asc(variants.generation));
-  const logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
+  // Get current visitor ID
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const currentVisitorId = cookieStore.get('visitor_id')?.value;
+
+  let allVariants = await db.select().from(variants).orderBy(asc(variants.generation));
   const configs = await db.select().from(optimizationConfigs).limit(1);
   const initialConfig = configs.length > 0 ? configs[0] : null;
   
-  const allEvents = await db.select().from(events);
+  let allEvents = await db.select().from(events);
+  let logs = await db.select().from(researchLogs).orderBy(desc(researchLogs.timestamp));
 
-  console.log("Admin Panel Variants Count:", allVariants.length);
-  console.log("Admin Panel Events Count:", allEvents.length);
+  // If not an admin, restrict the data to ONLY this user's session
+  if (!isAdmin && currentVisitorId) {
+    allEvents = allEvents.filter(e => e.visitorId === currentVisitorId);
+    const userVariantIds = Array.from(new Set(allEvents.map(e => e.variantId)));
+    allVariants = allVariants.filter(v => userVariantIds.includes(v.id) || v.id === 'hero_a_001');
+    const userVariantGenerations = Array.from(new Set(allVariants.map(v => v.generation)));
+    logs = logs.filter(l => userVariantGenerations.includes(l.generation));
+  }
 
   const config = configs[0];
 

@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ['lucide-react', 'recharts']
+    optimizePackageImports: ['lucide-react', 'recharts'],
+    after: true
   },
   webpack: (config, { isServer }) => {
     config.resolve.fallback = {

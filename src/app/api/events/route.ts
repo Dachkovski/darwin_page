@@ -57,19 +57,28 @@ export async function POST(req: NextRequest) {
     }
 
     if (configs.length > 0 && configs[0].autoPromoteEnabled) {
-      // Fire and forget the evolution cycle!
-      import('@/lib/evolution').then(({ runEvolutionCycle }) => {
-        const visitorId = body.events[0]?.visitorId;
-        runEvolutionCycle(dynamicEnv, visitorId).catch(e => console.error('Autonomous loop error:', e));
+      const visitorId = body.events[0]?.visitorId;
+      const { after } = await import('next/server');
+      after(async () => {
+        try {
+          const { runEvolutionCycle } = await import('@/lib/evolution');
+          await runEvolutionCycle(dynamicEnv, visitorId);
+        } catch (e) {
+          console.error('Autonomous loop error:', e);
+        }
       });
     }
 
-    // Fire and forget vision analysis if this payload is from an exit event
     if (body.isExit && (body.startImage || body.latestImage) && body.events.length > 0) {
       const exitEvent = body.events[body.events.length - 1]; // Use the last event as context
-      import('@/lib/vision').then(({ analyzeVisuals }) => {
-        analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, dynamicEnv)
-          .catch(e => console.error('Vision API error:', e));
+      const { after } = await import('next/server');
+      after(async () => {
+        try {
+          const { analyzeVisuals } = await import('@/lib/vision');
+          await analyzeVisuals(body.startImage, body.latestImage, exitEvent.variantId, exitEvent.visitorId, exitEvent.sessionId, dynamicEnv);
+        } catch (e) {
+          console.error('Vision API error:', e);
+        }
       });
     }
 

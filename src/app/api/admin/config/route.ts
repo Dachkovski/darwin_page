@@ -5,6 +5,13 @@ import { optimizationConfigs } from "@/db/schema";
 
 export async function POST(req: NextRequest) {
   try {
+    const authPassword = process.env.ADMIN_PASSWORD;
+    const adminToken = req.cookies.get('admin_token')?.value;
+
+    if (authPassword && adminToken !== authPassword) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json() as any;
     const db = getDb((process.env as any) || {});
 

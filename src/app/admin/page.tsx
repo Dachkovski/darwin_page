@@ -14,26 +14,17 @@ import TimelineNode from "@/components/TimelineNode";
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  // Check Basic Auth status from headers
-  const headersList = await headers();
-  const authHeader = headersList.get('authorization');
-  const authPassword = process.env.ADMIN_PASSWORD;
-  
-  let isAdmin = false;
-  if (authPassword && authHeader) {
-    try {
-      const authValue = authHeader.split(' ')[1];
-      const pwd = atob(authValue).split(':')[1];
-      if (pwd === authPassword) isAdmin = true;
-    } catch(e) {}
-  }
-  // If no password is set, we DO NOT default to true anymore, 
-  // because we want the public view to be a personal filtered view!
-
-  // Get current visitor ID
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const currentVisitorId = cookieStore.get('visitor_id')?.value;
+  
+  const adminToken = cookieStore.get('admin_token')?.value;
+  const authPassword = process.env.ADMIN_PASSWORD;
+  
+  let isAdmin = false;
+  if (authPassword && adminToken === authPassword) {
+    isAdmin = true;
+  }
 
   let allVariants = await db.select().from(variants).orderBy(asc(variants.generation));
   const configs = await db.select().from(optimizationConfigs).limit(1);

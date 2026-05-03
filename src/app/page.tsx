@@ -22,6 +22,10 @@ export default async function Home() {
   const cookieStore = await cookies();
   const visitorId = cookieStore.get('visitor_id')?.value;
 
+  const adminToken = cookieStore.get('admin_token')?.value;
+  const authPassword = process.env.ADMIN_PASSWORD;
+  const isAdmin = !!(authPassword && adminToken === authPassword);
+
   let personalVariantCount = 0;
 
   try {
@@ -91,7 +95,7 @@ export default async function Home() {
         </a>
       </div>
 
-      <ApiKeyModal personalVariantCount={personalVariantCount} maxFreeGenerations={maxFreeGenerations} />
+      {!isAdmin && <ApiKeyModal personalVariantCount={personalVariantCount} maxFreeGenerations={maxFreeGenerations} />}
       <Tracker variantId={trackingId} visitorId={visitorId} />
       <AppSandboxRenderer variant={activeVariantData} />
       <EvolutionState 

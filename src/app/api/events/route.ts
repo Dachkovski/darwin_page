@@ -47,12 +47,16 @@ export async function POST(req: NextRequest) {
 
     // Extract BYOK key from cookies
     const userApiKey = req.cookies.get('openai_api_key')?.value;
+    const adminToken = req.cookies.get('admin_token')?.value;
+    const authPassword = process.env.ADMIN_PASSWORD;
+    const isAdmin = !!(authPassword && adminToken === authPassword);
+
     const dynamicEnv = { ...process.env };
     
     if (userApiKey) {
       dynamicEnv.OPENAI_API_KEY = userApiKey;
-    } else if (personalVariantCount >= maxFreeGenerations) {
-      // Enforce BYOK after maxFreeGenerations
+    } else if (!isAdmin && personalVariantCount >= maxFreeGenerations) {
+      // Enforce BYOK after maxFreeGenerations for non-admins
       delete dynamicEnv.OPENAI_API_KEY;
     }
 

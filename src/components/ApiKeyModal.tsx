@@ -37,7 +37,7 @@ export default function ApiKeyModal({ personalVariantCount = 0, maxFreeGeneratio
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-neutral-900 border border-neutral-700 p-8 rounded-2xl max-w-md w-full flex flex-col gap-6 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-900/30 rounded-xl text-emerald-400">

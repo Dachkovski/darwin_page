@@ -85,11 +85,11 @@ export default async function Home() {
   return (
     <>
       {/* AI Sandbox Info Bubble */}
-      <div className="fixed top-4 left-4 z-[9999] group">
-        <div className="w-10 h-10 rounded-full bg-emerald-600/80 backdrop-blur text-white flex items-center justify-center cursor-help shadow-lg border border-emerald-400/50 hover:bg-emerald-500 transition-colors">
+      <div tabIndex={0} className="fixed top-4 left-4 z-[9999] group outline-none">
+        <div className="w-10 h-10 rounded-full bg-emerald-600/80 backdrop-blur text-white flex items-center justify-center cursor-pointer shadow-lg border border-emerald-400/50 hover:bg-emerald-500 transition-colors">
           <Info size={20} />
         </div>
-        <div className="absolute top-12 left-0 w-72 p-5 bg-black/90 backdrop-blur-md border border-neutral-800 rounded-2xl text-xs text-neutral-300 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none shadow-2xl scale-95 group-hover:scale-100 origin-top-left">
+        <div className="absolute top-12 left-0 w-72 p-5 bg-black/90 backdrop-blur-md border border-neutral-800 rounded-2xl text-xs text-neutral-300 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-300 pointer-events-none shadow-2xl scale-95 group-hover:scale-100 group-focus:scale-100 origin-top-left">
           <h3 className="text-white font-bold mb-2 text-sm flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Autonomous AI Sandbox

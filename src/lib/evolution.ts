@@ -59,11 +59,6 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
       try { totalTime += JSON.parse(e.metadataJson || '{}').seconds || 0; } catch (err) { }
     });
 
-    // COOLDOWN CHECK: Don't evolve if the user hasn't generated enough events on this variant
-    if (variantEvents.length < config.minVisitorsPerVariant) {
-      return { status: 'skipped', message: `Not enough events generated. User has ${variantEvents.length} / ${config.minVisitorsPerVariant} required events.` };
-    }
-
     // Collect JS errors
     const jsErrors = allUserEvents.filter(e => e.eventType === 'js_error' && e.variantId === variant.id).map(e => {
       try { return JSON.parse(e.metadataJson || '{}').error; } catch (err) { return null; }
@@ -96,13 +91,9 @@ CRITICAL INSTRUCTION: Use this history to generate a NEW, customized experience.
 EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input field (see 'User Inputted:' above), YOU MUST RESPOND DIRECTLY to their input in the new UI! Treat this as a slow-motion conversation. Acknowledge what they wrote in the new headline or body text.`;
   } else {
     variantEvents = await db.select().from(events).where(eq(events.variantId, variant.id));
-    const uniqueVisitors = new Set(variantEvents.map(e => e.visitorId)).size;
-    if (uniqueVisitors < config.minVisitorsPerVariant) {
-      return { status: 'skipped', message: `Not enough data yet. Only ${uniqueVisitors} visitors out of ${config.minVisitorsPerVariant} required.` };
-    }
   }
 
-  // --- ANALYZE PHASE ---
+  // --- ANALYZE PHASE (Moved up to calculate dynamic threshold) ---
   const pageViews = variantEvents.filter(e => e.eventType === 'page_view').length;
   const ctaClicks = variantEvents.filter(e => e.eventType === 'cta_click').length;
   const ctaClickRate = pageViews > 0 ? ctaClicks / pageViews : 0;
@@ -123,6 +114,28 @@ EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input fiel
   const bounceRate = pageViews > 0 ? bounces / pageViews : 0;
 
   const score = (ctaClickRate * (weights.cta_click_rate || 0)) + (bounceRate * (weights.bounce_rate || 0)) + (normalizedTimeOnPage * (weights.time_on_page || 0));
+
+  // --- DYNAMIC THRESHOLD LOGIC ---
+  // If a variant is exciting (high score), we keep it longer to maximize session duration.
+  // If it's boring (low/negative score), we rotate it out faster.
+  // We apply a multiplier to the baseline config threshold.
+  // A score of 0 -> multiplier 1.0. A score of 0.5 -> multiplier 1.5. A score of -0.2 -> multiplier 0.8.
+  const thresholdMultiplier = Math.max(0.5, Math.min(3.0, 1 + (score * 2))); 
+  const baselineThreshold = config.minVisitorsPerVariant;
+  const dynamicThreshold = Math.max(3, Math.ceil(baselineThreshold * thresholdMultiplier));
+
+  if (targetVisitorId) {
+    // COOLDOWN CHECK FOR PERSONAL: based on events generated
+    if (variantEvents.length < dynamicThreshold) {
+      return { status: 'skipped', message: `Variant is performing at score ${score.toFixed(2)}. Dynamic threshold requires ${dynamicThreshold} events. User currently has ${variantEvents.length}.` };
+    }
+  } else {
+    // COOLDOWN CHECK FOR GLOBAL: based on unique visitors
+    const uniqueVisitors = new Set(variantEvents.map(e => e.visitorId)).size;
+    if (uniqueVisitors < dynamicThreshold) {
+      return { status: 'skipped', message: `Variant is performing at score ${score.toFixed(2)}. Dynamic threshold requires ${dynamicThreshold} unique visitors. Currently has ${uniqueVisitors}.` };
+    }
+  }
 
   let observation = "Auto-generated analysis.";
   let hypothesis = "We need a more engaging CTA.";

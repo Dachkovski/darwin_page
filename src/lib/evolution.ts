@@ -34,7 +34,7 @@ function calculateVariantMetrics(metrics: any[], weights: any) {
 }
 
 // Helper: Build User Context for LLM using optimized SQL
-async function buildUserContext(db: any, targetVisitorId: string, variant: any) {
+async function buildUserContext(db: any, targetVisitorId: string, variant: any, env?: any) {
   const recentInteractionsEvents = await db.select().from(events)
     .where(and(eq(events.visitorId, targetVisitorId), eq(events.eventType, 'interaction_click')))
     .orderBy(desc(events.timestamp)).limit(15);
@@ -178,7 +178,7 @@ export async function runEvolutionCycle(env: any, targetVisitorId?: string) {
   }).from(events);
 
   if (targetVisitorId) {
-    userHistoryContext = await buildUserContext(db, targetVisitorId, variant);
+    userHistoryContext = await buildUserContext(db, targetVisitorId, variant, env);
     variantMetrics = await metricsQuery.where(and(eq(events.variantId, variant.id), eq(events.visitorId, targetVisitorId))).groupBy(events.eventType);
     
     const countResult = await db.select({ count: sql<number>`count(*)` }).from(events).where(and(eq(events.variantId, variant.id), eq(events.visitorId, targetVisitorId)));

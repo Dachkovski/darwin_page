@@ -6,8 +6,15 @@ import Link from "next/link";
 import { Activity, Brain, Eye, MessageSquare, Clock, Users } from "lucide-react";
 import { ActivityChart, EngagementChart } from "@/components/InsightsCharts";
 
+import { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Cache for 60 seconds
+
+export const metadata: Metadata = {
+  title: 'The Human Mirror | Darwin Engine',
+  description: 'A public dashboard showing the footprint of human curiosity—what people whispered to the machine, and how the machine evolved to reflect them.',
+};
 
 export default async function InsightsDashboard() {
   const db = getDb((process.env as any) || {});

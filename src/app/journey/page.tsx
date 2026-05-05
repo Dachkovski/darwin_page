@@ -7,7 +7,14 @@ import Link from "next/link";
 import { Activity, Home } from "lucide-react";
 import TimelineNode from "@/components/TimelineNode";
 
+import { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'My Evolution Journey | Darwin Engine',
+  description: 'Your personal interaction timeline with the Darwin Engine.',
+};
 
 export default async function MyJourneyPage() {
   const cookieStore = await cookies();

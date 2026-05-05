@@ -24,7 +24,7 @@ async function searchWeb(query: string) {
   }
 }
 
-export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher.", env?: any, responseFormat?: any): Promise<string> {
+export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher.", env?: any, responseFormat?: any, allowTools?: boolean): Promise<string> {
   const db = getDb(env);
   const configs = await db.select().from(optimizationConfigs).limit(1);
   const activeConfig = configs.length > 0 ? configs[0] : null;
@@ -50,6 +50,26 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
 
   if (responseFormat) {
     bodyData.response_format = responseFormat;
+  }
+
+  if (allowTools) {
+    bodyData.tools = [
+      {
+        type: "function",
+        function: {
+          name: "search_web",
+          description: "Search the web for real-time information, UX trends, or best practices.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "The search query." }
+            },
+            required: ["query"]
+          }
+        }
+      }
+    ];
+    bodyData.tool_choice = "auto";
   }
 
   for (let i = 0; i < 3; i++) { // Max 3 interactions

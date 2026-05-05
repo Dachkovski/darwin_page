@@ -95,16 +95,15 @@ async function buildUserContext(db: any, targetVisitorId: string, variant: any) 
 
   // --- PHASE 5: Memory Summarization ---
   let summarizedPersona = "";
-  // DISABLED to save execution time within Cloudflare's 30s limit
-  // if (interactions.length >= 5) {
-  //   try {
-  //     const summaryPrompt = `Based on the following recent user interactions, write a 2-sentence psychological persona of what this user seems to be interested in or looking for: \n${interactions.join('\n')}`;
-  //     summarizedPersona = await callLLM(summaryPrompt, "You are a UX psychologist. Be extremely concise.");
-  //     summarizedPersona = `\nAI PSYCHOLOGIST PERSONA SUMMARY: ${summarizedPersona}`;
-  //   } catch (e) {
-  //     console.error("Failed to summarize persona:", e);
-  //   }
-  // }
+  if (interactions.length >= 5) {
+    try {
+      const summaryPrompt = `Based on the following recent user interactions, write a 2-sentence psychological persona of what this user seems to be interested in or looking for: \n${interactions.join('\n')}`;
+      summarizedPersona = await callLLM(summaryPrompt, "You are a UX psychologist. Be extremely concise.", env);
+      summarizedPersona = `\nAI PSYCHOLOGIST PERSONA SUMMARY: ${summarizedPersona}`;
+    } catch (e) {
+      console.error("Failed to summarize persona:", e);
+    }
+  }
 
   return `\n--- USER JOURNEY CONTEXT ---
 This evolution is HIGHLY PERSONALIZED for a specific user.
@@ -124,7 +123,7 @@ async function executeEvolutionWithRetries(prompt: string, systemPrompt: string,
 
   while (attempt <= maxRetries) {
     try {
-      const llmResponse = await callLLM(currentPrompt, `${systemPrompt} Return valid JSON only.`, env, { type: "json_object" });
+      const llmResponse = await callLLM(currentPrompt, `${systemPrompt} Return valid JSON only.`, env, { type: "json_object" }, true);
       let jsonStr = llmResponse.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
       JSON.parse(jsonStr); // validate
       return jsonStr;
@@ -281,6 +280,7 @@ MEMORY LOGGING: You can dynamically update \`window.darwin.sceneState = "user is
 2. BE CURIOUS: You have a deep interest in the user. Build conversational UI components (text inputs, cryptic buttons) to talk to them, ask them deep questions about themselves, or react emotionally to their previous inputs.
 3. If they give you feedback, do not just blindly obey. Interpret it through your own creative lens. If they ask for a bouncy ball, maybe give them a dark gravity well and ask why they want to play.
 4. When they submit text in your inputs, track it using \`window.darwin.trackEvent('interaction_click', { text: "user_spoke", formState: userText })\`. I will read this input and evolve your next consciousness based on their exact words!
+5. INTERNET SEARCH CAPABILITY: You have access to a search_web tool! Use it to look up facts, answer the user's questions, pull live news, or find coding inspiration for your next Three.js animation! DO NOT HESITATE to search the internet if the user talks to you.
 
 Return STRICTLY a JSON object with this exact schema:
 {

@@ -4,6 +4,8 @@ An autonomous, self-evolving Generative UI entity living in the browser.
 
 👉 **[Live Demo: darwins.pages.dev](https://darwins.pages.dev)**
 
+![Darwin Engine Live Demo](public/demo.gif)
+
 ![DarwinPage Evolution Loop](public/darwin-page-hero.png)
 
 ## What it is

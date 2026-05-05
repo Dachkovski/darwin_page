@@ -1,39 +1,12 @@
-import { db } from './index';
-import { variants, optimizationConfigs, researchLogs } from './schema';
+import fs from 'fs';
+import { execSync } from 'child_process';
 import crypto from 'crypto';
 
 async function seed() {
-  console.log('🌱 Starting database seed...');
-
-  // 1. Optimization Config
-  console.log('Inserting Optimization Config...');
-  await db.insert(optimizationConfigs).values({
-    id: crypto.randomUUID(),
-    activeMetricName: 'default_score',
-    scoreWeightsJson: JSON.stringify({
-      cta_click_rate: 0.45,
-      scroll_depth_rate: 0.25,
-      normalized_time_on_page: 0.20,
-      bounce_rate: -0.10
-    }),
-    minVisitorsPerVariant: 100,
-    minExperimentDays: 3,
-    minScoreImprovement: 0.10,
-    autoPromoteEnabled: false
-  });
-
-  // 2. Initial Variant (The Winner)
-  console.log('Inserting Initial Variant...');
+  console.log('🌱 Starting database seed for local D1...');
+  
   const variantId = 'hero_a_001';
-  await db.insert(variants).values({
-    id: variantId,
-    generation: 1,
-    status: 'active',
-    hypothesis: 'Initial base variant for the project.',
-    mutationReason: 'Genesis',
-    contentJson: JSON.stringify({
-      html: `
-<div class="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 font-sans relative overflow-hidden">
+  const html = `<div class="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 font-sans relative overflow-hidden">
   <div id="bg-canvas" class="absolute inset-0 z-0"></div>
   <div class="z-10 text-center max-w-3xl flex flex-col gap-6 items-center">
     <div class="px-3 py-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-mono tracking-widest uppercase mb-4 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
@@ -59,11 +32,11 @@ async function seed() {
       <textarea id="human-whisper" rows="3" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono text-sm placeholder:text-neutral-700" placeholder="e.g. Make it look like a 90s terminal..."></textarea>
     </div>
   </div>
-</div>
-      `,
-      css: "body { background: black; margin: 0; overflow-x: hidden; }",
-      js: `
-// Minimal Three.js background
+</div>`;
+
+  const css = "body { background: black; margin: 0; overflow-x: hidden; }";
+  
+  const js = `// Minimal Three.js background
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -98,27 +71,32 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
-      `
-    })
-  });
+});`;
 
-  // 3. Initial Research Log
-  console.log('Inserting Genesis Research Log...');
-  await db.insert(researchLogs).values({
-    id: crypto.randomUUID(),
-    generation: 1,
-    action: 'seed_database',
-    observation: 'No existing data.',
-    hypothesis: 'Creating an initial variant will start the feedback loop.',
-    mutation: 'None',
-    result: 'Variant hero_a_001 activated.',
-    decision: 'Start data collection.',
-    metricsJson: '{}'
-  });
+  const contentJson = JSON.stringify({ html, css, js }).replace(/'/g, "''");
+  const weightsJson = JSON.stringify({ cta_click_rate: 0.45, scroll_depth_rate: 0.25, normalized_time_on_page: 0.20, bounce_rate: -0.10 }).replace(/'/g, "''");
 
-  console.log('✅ Seeding complete!');
-  process.exit(0);
+  const sql = `
+INSERT INTO optimization_configs (id, active_metric_name, score_weights_json, min_visitors_per_variant, min_experiment_days, min_score_improvement, auto_promote_enabled)
+VALUES ('${crypto.randomUUID()}', 'default_score', '${weightsJson}', 100, 3, 0.10, 0);
+
+INSERT INTO variants (id, generation, status, hypothesis, mutation_reason, content_json)
+VALUES ('${variantId}', 1, 'active', 'Initial base variant for the project.', 'Genesis', '${contentJson}');
+
+INSERT INTO research_logs (id, generation, action, observation, hypothesis, mutation, result, decision, metrics_json)
+VALUES ('${crypto.randomUUID()}', 1, 'seed_database', 'No existing data.', 'Creating an initial variant will start the feedback loop.', 'None', 'Variant hero_a_001 activated.', 'Start data collection.', '{}');
+`;
+
+  fs.writeFileSync('seed.sql', sql);
+  console.log('Created seed.sql. Applying to local D1 via Wrangler...');
+  try {
+    execSync('npx wrangler d1 execute darwin_db --local --file=seed.sql', { stdio: 'inherit' });
+    console.log('✅ Seeding complete!');
+  } catch (e) {
+    console.error('❌ Failed to execute seed.sql in Wrangler');
+  } finally {
+    fs.unlinkSync('seed.sql');
+  }
 }
 
 seed().catch((err) => {

@@ -15,6 +15,13 @@
       "when": 1777769105867,
       "tag": "0001_woozy_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778008801427,
+      "tag": "0002_mute_nova",
+      "breakpoints": true
     }
   ]
 }

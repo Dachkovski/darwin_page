@@ -2,9 +2,9 @@ import { getDb } from './db';
 import { events } from '@/db/schema';
 
 export async function analyzeVisuals(startImage: string, latestImage: string, variantId: string, visitorId: string, sessionId: string, env: any) {
-  const apiKey = env.OPENAI_API_KEY;
-  const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-  const model = env.OPENAI_MODEL || "gpt-5.5";
+  const apiKey = env?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  const baseUrl = env?.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+  const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
 
   let insight = "Analysis skipped: OPENAI_API_KEY not configured.";
 

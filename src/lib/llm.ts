@@ -57,16 +57,18 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
   ];
 
   const apiKey = env ? env.OPENAI_API_KEY : process.env.OPENAI_API_KEY;
+  const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
+  const baseUrl = env?.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
   for (let i = 0; i < 3; i++) { // Max 3 interactions
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model,
         messages,
         tools,
         tool_choice: "auto"

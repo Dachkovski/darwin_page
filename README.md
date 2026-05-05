@@ -43,6 +43,8 @@ Built with a modern, focused tech stack:
 
 ## Local setup
 
+This project uses Cloudflare D1 and Edge Runtime. It has been configured to simulate these locally using `setupDevPlatform()`.
+
 ```bash
 # 1. Install dependencies
 npm install
@@ -51,10 +53,13 @@ npm install
 # Create a .env.local file and add:
 # OPENAI_API_KEY=sk-your-key
 
-# 3. Seed the database with initial variants
+# 3. Apply the database schema to the local D1 instance
+npx wrangler d1 migrations apply darwin_db --local
+
+# 4. Seed the database with initial variants
 npm run db:seed
 
-# 4. Start the development server
+# 5. Start the development server (uses local D1 bindings)
 npm run dev
 ```
 

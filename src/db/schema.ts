@@ -7,6 +7,7 @@ export const variants = sqliteTable('variants', {
   generation: integer('generation').notNull(),
   parentVariantId: text('parent_variant_id'),
   status: text('status').notNull().default('draft'), // draft, active, winner, archived, inconclusive
+  isEvolving: integer('is_evolving', { mode: 'boolean' }).default(false),
   contentJson: text('content_json').notNull(),
   hypothesis: text('hypothesis'),
   generationPrompt: text('generation_prompt'),

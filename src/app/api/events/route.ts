@@ -6,13 +6,13 @@ import { events, optimizationConfigs, variants } from "@/db/schema";
 export async function POST(req: NextRequest) {
   try {
     const text = await req.text();
-    if (!text) return NextResponse.json({ success: true });
+    if (!text) return Response.json({ success: true });
     
     const body = JSON.parse(text);
     
     // We expect the payload to be { events: [...] } due to Tracker batching
     if (!body.events || !Array.isArray(body.events)) {
-      return NextResponse.json({ error: "Invalid payload format" }, { status: 400 });
+      return Response.json({ error: "Invalid payload format" }, { status: 400 });
     }
 
     const db = getDb((process.env as any) || {});
@@ -101,9 +101,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true });
+    return Response.json({ success: true });
   } catch (error) {
     console.error("Failed to track events:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

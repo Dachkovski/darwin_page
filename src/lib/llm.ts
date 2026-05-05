@@ -40,7 +40,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
   ];
 
   const apiKey = env ? env.OPENAI_API_KEY : process.env.OPENAI_API_KEY;
-  const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
+  const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.4-mini";
   const baseUrl = env?.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
   const bodyData: any = {
@@ -53,6 +53,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
   }
 
   for (let i = 0; i < 3; i++) { // Max 3 interactions
+    const startTime = Date.now();
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
@@ -61,6 +62,8 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
       },
       body: JSON.stringify(bodyData)
     });
+    const endTime = Date.now();
+    console.log(`[LLM Debug] Model: ${model} | Response Time: ${endTime - startTime}ms | Attempt: ${i + 1}`);
 
     if (!response.ok) {
       const errorText = await response.text();

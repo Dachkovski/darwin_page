@@ -39,23 +39,6 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
     { role: "user", content: prompt }
   ];
 
-  const tools = [
-    {
-      type: "function",
-      function: {
-        name: "search_web",
-        description: "Search the web for real-time information, UX trends, or best practices.",
-        parameters: {
-          type: "object",
-          properties: {
-            query: { type: "string", description: "The search query." }
-          },
-          required: ["query"]
-        }
-      }
-    }
-  ];
-
   const apiKey = env ? env.OPENAI_API_KEY : process.env.OPENAI_API_KEY;
   const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
   const baseUrl = env?.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
@@ -69,9 +52,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
       },
       body: JSON.stringify({
         model,
-        messages,
-        tools,
-        tool_choice: "auto"
+        messages
       })
     });
 

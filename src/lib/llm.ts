@@ -24,7 +24,7 @@ async function searchWeb(query: string) {
   }
 }
 
-export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher.", env?: any): Promise<string> {
+export async function callLLM(prompt: string, systemPrompt: string = "You are an expert data analyst and UX researcher.", env?: any, responseFormat?: any): Promise<string> {
   const db = getDb(env);
   const configs = await db.select().from(optimizationConfigs).limit(1);
   const activeConfig = configs.length > 0 ? configs[0] : null;
@@ -43,6 +43,15 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
   const model = env?.OPENAI_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
   const baseUrl = env?.OPENAI_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
+  const bodyData: any = {
+    model,
+    messages
+  };
+
+  if (responseFormat) {
+    bodyData.response_format = responseFormat;
+  }
+
   for (let i = 0; i < 3; i++) { // Max 3 interactions
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -50,10 +59,7 @@ export async function callLLM(prompt: string, systemPrompt: string = "You are an
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        model,
-        messages
-      })
+      body: JSON.stringify(bodyData)
     });
 
     if (!response.ok) {

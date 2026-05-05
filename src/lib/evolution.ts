@@ -95,15 +95,16 @@ async function buildUserContext(db: any, targetVisitorId: string, variant: any) 
 
   // --- PHASE 5: Memory Summarization ---
   let summarizedPersona = "";
-  if (interactions.length >= 5) {
-    try {
-      const summaryPrompt = `Based on the following recent user interactions, write a 2-sentence psychological persona of what this user seems to be interested in or looking for: \n${interactions.join('\n')}`;
-      summarizedPersona = await callLLM(summaryPrompt, "You are a UX psychologist. Be extremely concise.");
-      summarizedPersona = `\nAI PSYCHOLOGIST PERSONA SUMMARY: ${summarizedPersona}`;
-    } catch (e) {
-      console.error("Failed to summarize persona:", e);
-    }
-  }
+  // DISABLED to save execution time within Cloudflare's 30s limit
+  // if (interactions.length >= 5) {
+  //   try {
+  //     const summaryPrompt = `Based on the following recent user interactions, write a 2-sentence psychological persona of what this user seems to be interested in or looking for: \n${interactions.join('\n')}`;
+  //     summarizedPersona = await callLLM(summaryPrompt, "You are a UX psychologist. Be extremely concise.");
+  //     summarizedPersona = `\nAI PSYCHOLOGIST PERSONA SUMMARY: ${summarizedPersona}`;
+  //   } catch (e) {
+  //     console.error("Failed to summarize persona:", e);
+  //   }
+  // }
 
   return `\n--- USER JOURNEY CONTEXT ---
 This evolution is HIGHLY PERSONALIZED for a specific user.
@@ -116,14 +117,14 @@ EXTREME PERSONALIZATION REQUIRED: If the user typed something into an input fiel
 }
 
 // Helper: Execute LLM with Retries
-async function executeEvolutionWithRetries(prompt: string, systemPrompt: string, maxRetries = 2) {
+async function executeEvolutionWithRetries(prompt: string, systemPrompt: string, maxRetries = 2, env?: any) {
   let attempt = 0;
   let lastError = null;
   let currentPrompt = prompt;
 
   while (attempt <= maxRetries) {
     try {
-      const llmResponse = await callLLM(currentPrompt, `${systemPrompt} Return valid JSON only.`);
+      const llmResponse = await callLLM(currentPrompt, `${systemPrompt} Return valid JSON only.`, env, { type: "json_object" });
       let jsonStr = llmResponse.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
       JSON.parse(jsonStr); // validate
       return jsonStr;
@@ -291,7 +292,7 @@ CRITICAL ENGINE RULE: You MUST return ONLY valid JSON. No markdown wrappers.`;
   let newContentJson = variant.contentJson;
 
   try {
-    newContentJson = await executeEvolutionWithRetries(evolvePrompt, config.llmSystemPrompt, 2);
+    newContentJson = await executeEvolutionWithRetries(evolvePrompt, config.llmSystemPrompt, 2, env);
   } catch (e) {
     console.error("Evolution LLM call failed completely after retries:", e);
     const fb = JSON.parse(newContentJson);
